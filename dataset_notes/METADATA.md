@@ -1,0 +1,49 @@
+# Dataset metadata
+
+| dataset | task | source | access | exposure | redistribution |
+|---|---|---|---|---|---|
+| freMTPL2freq | freq | OpenML | openml_id | Exposure | fetch-only |
+| ausprivauto | freq | Rdatasets | url_csv | exposure | fetch-only |
+| mass_insurance | freq | Rdatasets | url_csv | Holders | fetch-only |
+| freMTPLfreq | freq | CASdatasets | casdatasets_rda | Exposure | fetch-only |
+| norauto | freq | CASdatasets | casdatasets_rda | Expo | fetch-only |
+| beMTPL97 | freq | CASdatasets | casdatasets_rda | expo | fetch-only |
+| beMTPL16 | freq | CASdatasets | casdatasets_rda | exposure | fetch-only |
+| swautoins | freq | CASdatasets | casdatasets_rda | Insured | fetch-only |
+| pg15training | freq | CASdatasets | casdatasets_rda | Exppdays | fetch-only |
+| catelematic13 | freq | CASdatasets | casdatasets_rda | Duration | fetch-only |
+| sgautonb | freq | CASdatasets | casdatasets_rda | Exp_weights | fetch-only |
+| allstate_sev | sev | OpenML | openml_id | — | fetch-only |
+| danishuni | sev | CASdatasets | casdatasets_rda | — | fetch-only |
+| norfire | sev | CASdatasets | casdatasets_rda | — | fetch-only |
+| lossalae | sev | CASdatasets | casdatasets_rda | — | fetch-only |
+| ausprivauto_clf | clf | Rdatasets | url_csv | exposure | fetch-only |
+| credit_g | clf | OpenML | openml_id | — | Y |
+| give_me_some_credit | clf | OpenML | openml_id | — | fetch-only |
+| tic2000 | clf | OpenML | openml_id | — | fetch-only |
+| ausprivauto_pp | pp | Rdatasets | url_csv | exposure | fetch-only |
+| swautoins_pp | pp | CASdatasets | casdatasets_rda | Insured | fetch-only |
+| beMTPL97_pp | pp | CASdatasets | casdatasets_rda | expo | fetch-only |
+| ohlsson | freq | Rdatasets | url_csv | duration | fetch-only |
+| brvehins1 | freq | CASdatasets | casdatasets_rda | ExposTotal | fetch-only |
+| euhealth | freq | CASdatasets | casdatasets_rda | policy_years | fetch-only |
+| ausautoBI | sev | CASdatasets | casdatasets_rda | — | fetch-only |
+| autoclaims_us | sev | Rdatasets | url_csv | — | fetch-only |
+| autobi_us | sev | Rdatasets | url_csv | — | fetch-only |
+| ohlsson_sev | sev | Rdatasets | url_csv | — | fetch-only |
+| ohlsson_pp | pp | Rdatasets | url_csv | duration | fetch-only |
+| euhealth_pp | pp | CASdatasets | casdatasets_rda | policy_years | fetch-only |
+| brvehins1_pp | pp | CASdatasets | casdatasets_rda | ExposTotal | fetch-only |
+| eudirectlapse | clf | CASdatasets | casdatasets_rda | — | fetch-only |
+| uslapseagent | clf | CASdatasets | casdatasets_rda | — | fetch-only |
+| porto_seguro | clf | OpenML | openml_id | — | fetch-only |
+| brautocoll | clf | CASdatasets | casdatasets_rda | — | fetch-only |
+| freclaimdam | sev | CASdatasets | casdatasets_rda | — | fetch-only |
+| prudential_life | multiclf | GitHub mirror (Kaggle comp.) | url_csv | — | fetch-only |
+| pg17_coverage | multiclf | CASdatasets | casdatasets_rda | — | fetch-only |
+| homesite_conv | clf | OpenML | openml_id | — | fetch-only |
+| fremotor_payfreq | multiclf | CASdatasets | casdatasets_rda | — | fetch-only |
+| pg17_payfreq | multiclf | CASdatasets | casdatasets_rda | — | fetch-only |
+| pg16_payfreq | multiclf | CASdatasets | casdatasets_rda | — | fetch-only |
+| fremotor_prem | sev | CASdatasets | casdatasets_rda | — | fetch-only |
+| eusavingul | clf | CASdatasets | casdatasets_rda | — | fetch-only |

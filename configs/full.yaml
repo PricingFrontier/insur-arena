@@ -1,0 +1,20 @@
+# Official profile — TabArena-faithful (minus ensembling): full data, 200 configs (SPEC §5.7).
+benchmark: insur-arena-v0.1
+profile: full
+subsample_rows: null            # full data (up to the 250k curation cap)
+split:
+  small_threshold: 2500
+  small: {folds: 3, repeats: 10}   # -> 30 splits
+  large: {folds: 3, repeats: 3}    # -> 9 splits
+hpo:
+  n_configs: 200
+tasks:
+  pp: {tweedie_power: 1.9}
+datasets: [freMTPL2freq]
+models:
+  - {name: glm,       variants: [default, tuned]}
+  - {name: lightgbm,  variants: [default, tuned]}
+  - {name: xgboost,   variants: [default, tuned]}
+  - {name: catboost,  variants: [default, tuned]}
+  - {name: ebm,       variants: [default, tuned]}
+storage: {cache_dir: ~/.cache/insurarena, store_predictions: true}

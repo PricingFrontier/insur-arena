@@ -1,0 +1,34 @@
+# Straggler rerun of configs/shards/ebm__brvehins1.yaml with max_workers 5 (outer splits in
+# parallel). max_workers is absent from every cache key; verified below by gen_shard_configs.verify.
+benchmark: insur-arena-v0.2-tuned-ebm-all--shard-brvehins1--straggler-mw5
+datasets:
+- brvehins1
+hpo:
+  fold_workers: 3
+  inner_folds: 3
+  inner_repeats: auto
+  n_configs: 25
+models:
+- name: ebm
+  variants:
+  - default
+  - tuned
+profile: full
+split:
+  large:
+    folds: 3
+    repeats: 3
+  small:
+    folds: 3
+    repeats: 10
+  small_threshold: 2500
+storage:
+  cache_dir: runs/benchmark
+  store_predictions: false
+  use_cache: true
+  max_workers: 5
+  threads_per_worker: 4
+subsample_rows: null
+tasks:
+  pp:
+    tweedie_power: 1.9

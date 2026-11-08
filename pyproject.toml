@@ -1,0 +1,47 @@
+[project]
+name = "insurarena"
+version = "0.1.0"
+description = "TabArena-style tabular benchmark for insurance pricing (single model per split)"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "scikit-learn>=1.4",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# Heavy / optional engines — the package imports and the metric/split tests run without these.
+gbm = ["lightgbm>=4.0", "xgboost>=2.0", "catboost>=1.2"]   # gradient-boosting techniques
+ebm = ["interpret>=0.6"]      # Explainable Boosting Machine (GA2M)
+viz = ["matplotlib>=3.7"]     # optional; the TabArena-style Elo chart
+glm = ["glum>=3.0"]            # optional; MVP GLM falls back to sklearn PoissonRegressor
+rustystats = ["rustystats>=0.8.13"]  # optional actuarial GLM/GAM engine with Rust backend
+# tri-boost is a separately-built Rust extension, normally installed editable via
+# `maturin develop --release` from its own repo rather than resolved from an index. Declared here
+# so the dependency is not invisible: it is the ONE engine whose build is not fingerprinted by a
+# cell signature, so a rebuild that moves a fit silently invalidates cached cells with identical
+# keys. `results.engine_fingerprint` records the built extension's hash beside each cell and warns
+# on a mismatch; this line is the other half — making the dependency declared rather than implied.
+triboost = ["tri-boost>=0.6.0"]  # optional glassbox GBM; see results/engine_fingerprint.py
+io = ["pyarrow>=15.0"]         # optional; results fall back to CSV without it
+casdata = ["rdata>=0.11"]      # optional; pure-Python reader for CASdatasets .rda (pyreadr also works)
+dev = ["pytest>=8.0"]
+all = ["lightgbm>=4.0", "xgboost>=2.0", "catboost>=1.2", "interpret>=0.6", "rustystats>=0.8.13", "pyarrow>=15.0", "rdata>=0.11"]
+
+[project.scripts]
+insurarena = "insurarena.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/insurarena"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

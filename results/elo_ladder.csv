@@ -1,0 +1,13 @@
+competitor,elo,elo_lo,elo_hi,n_datasets
+t-boost/tuned,1417,1311,1533,40
+catboost/tuned,1398,1261,1558,40
+xgboost/tuned,1398,1275,1530,40
+lightgbm/tuned,1393,1307,1515,40
+t-boost/default,1359,1262,1461,40
+tabpfn3/default,1309,1148,1478,40
+ebm/tuned,1260,1144,1364,40
+ebm/default,1248,1132,1351,40
+catboost/default,1163,1013,1309,40
+lightgbm/default,1131,1016,1253,40
+glm/default,1000,1000,1000,40
+xgboost/default,980,848,1098,40

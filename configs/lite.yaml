@@ -1,0 +1,21 @@
+# Default workstation profile — real freMTPL2freq, subsampled, modest HPO (SPEC §5.7).
+# Not eligible for the official leaderboard (which uses `full`); for development + iteration.
+benchmark: insur-arena-v0.1
+profile: lite
+subsample_rows: 100000
+split:
+  small_threshold: 2500
+  small: {folds: 3, repeats: 3}
+  large: {folds: 3, repeats: 1}
+hpo:
+  n_configs: 32
+tasks:
+  pp: {tweedie_power: 1.9}
+datasets: [freMTPL2freq]
+models:
+  - {name: glm,       variants: [default, tuned]}
+  - {name: lightgbm,  variants: [default, tuned]}
+  - {name: xgboost,   variants: [default, tuned]}
+  - {name: catboost,  variants: [default, tuned]}
+  - {name: ebm,       variants: [default]}        # EBM is slower; default-only in lite
+storage: {cache_dir: ~/.cache/insurarena, store_predictions: true}

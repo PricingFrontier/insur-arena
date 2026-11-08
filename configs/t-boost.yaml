@@ -1,0 +1,85 @@
+# t-boost default + tuned across the full eligible catalog (40 datasets), nested per-split
+# selection (protocol v2: paired per-fold scores, size-adaptive inner repeats, default ship-gate).
+# One config per model, the same rule every comparator on the board follows. Datasets are ordered
+# small -> large so results accrue early.
+#
+# Tuning races the same 25-candidate budget as lightgbm, xgboost, catboost and ebm, on top of the
+# default anchor: 10 coordinate probes (`coordinate_probe_hp_set`) and 15 draws from
+# `sample_hp_set`, the minimum that covers all 15 (max_interaction_order, interaction_gain_hurdle)
+# combinations once. A top-K finale re-race (k=4, 1-SE band) re-scores near-ties at ship fidelity
+# before the gate, and depth-lifted champions face a 3-SE structural floor.
+#
+# Datasets under 2,500 rows get the adapter's small-set prune settings through a fit-time size gate
+# in the adapter, not through per-dataset configs.
+#
+# MEMORY. Run it under a cgroup cap so an overrun cannot take the machine down:
+#   systemd-run --user --scope -p MemoryMax=96G -p MemorySwapMax=0 \
+#     .venv/bin/python -m insurarena.cli run --config configs/t-boost.yaml
+# Peak on this board: 67.2 GB at 4 workers x 8 threads (allstate_sev tuned, ~17 GB per worker).
+# `max_workers` is not part of any cell key; `threads_per_worker` is.
+benchmark: insur-arena-v0.2-tuned-t-boost-all
+profile: full
+subsample_rows: null
+split:
+  small_threshold: 2500
+  small: {folds: 3, repeats: 10}
+  large: {folds: 3, repeats: 3}
+hpo:
+  n_configs: 25          # plus the default anchor: 10 coordinate probes + 15 sampled draws
+  inner_folds: 3
+  inner_repeats: auto    # protocol v2: repeated inner CV on small tune splits + default ship-gate
+  fold_workers: 3        # A1: inner folds of each candidate in parallel — wall-clock only, unkeyed
+  racing_se: 2.0         # A2: fold-1 paired-deficit discard vs the running incumbent
+  racing_min_rows: 45000 # A2 safety gate: racing discards on ONE fold, which is unsound where
+                         #     `inner_repeats: auto` judges the tune split too noisy to score once.
+                         #     3-fold outer => train ~2n/3, so repeats==1 needs n >= 45000.
+  selection_max_rows: 200000  # A3 (SPEC 5.5): cap the rows the SEARCH scores on — whole
+                         #     groups, stratified, deterministic. Deploy fits always refit on
+                         #     the FULL outer-train; only candidate ranking sees the cap.
+tasks:
+  pp: {tweedie_power: 1.9}
+datasets:
+  - credit_g              # 1.0k
+  - brautocoll            # 1.3k
+  - autobi_us             # 1.3k
+  - swautoins             # 2.2k
+  - swautoins_pp          # 2.2k
+  - freclaimdam           # 3.9k
+  - autoclaims_us         # 6.8k
+  - sgautonb              # 7.5k
+  - tic2000               # 9.8k
+  - eusavingul            # 22k
+  - ausautoBI             # 22k
+  - eudirectlapse         # 23k
+  - uslapseagent          # 29k
+  - fremotor_payfreq      # 52k
+  - fremotor_prem         # 52k
+  - prudential_life       # 59k
+  - ohlsson               # 62k
+  - ohlsson_pp            # 62k
+  - ausprivauto           # 68k
+  - ausprivauto_clf       # 68k
+  - ausprivauto_pp        # 68k
+  - beMTPL16              # 71k
+  - pg16_payfreq          # 87k
+  - catelematic13         # 100k
+  - pg17_coverage         # 100k
+  - pg17_payfreq          # 100k
+  - pg15training          # 100k
+  - give_me_some_credit   # 150k
+  - beMTPL97              # 163k
+  - beMTPL97_pp           # 163k
+  - euhealth              # 176k
+  - euhealth_pp           # 176k
+  - norauto               # 184k
+  - allstate_sev          # 188k
+  - homesite_conv         # 261k
+  - brvehins1             # 383k
+  - brvehins1_pp          # 383k
+  - freMTPLfreq           # 413k
+  - porto_seguro          # 595k
+  - freMTPL2freq          # 678k  (canonical)
+models:
+  - {name: t-boost, variants: [default, tuned]}
+storage: {cache_dir: runs/benchmark, store_predictions: false, use_cache: true,
+          max_workers: 4, threads_per_worker: 8}

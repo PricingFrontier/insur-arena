@@ -1,0 +1,76 @@
+# The GLM ANCHOR — `glm/default` across the full eligible catalog (40 datasets).
+#
+# Every model on the board has exactly one campaign config at `configs/<model>.yaml`; this is the
+# anchor's. `insurarena.results.canonical` requires the Elo anchor (`glm/default` = 1000) to have
+# full catalog coverage, and `skill_vs_glm` on every other row divides by this model's deviance, so
+# it runs first, ahead of every comparator.
+#
+# `default` ONLY, deliberately. The published anchor is `glm/default`; `glm/tuned` is not on the
+# board and is not needed by any downstream consumer.
+#
+# NOTE ON THE `__glm_baseline__` CELLS. The runner computes a per-(dataset, split) GLM baseline
+# deviance for `skill_vs_glm` regardless of whether `glm` is a listed model
+# (`eval/runner.py:_baseline_deviances`), cached under its own `__glm_baseline__` signature. Those
+# cells are NOT the same objects as this config's `glm/default` leaderboard cells, but they are fit
+# from the same `model_class("glm").default_hp()` on the same outer-train. Running this config
+# first therefore primes the baseline cache for all five comparators that follow, so none of them
+# pays for the anchor fit again.
+#
+# glm is a RAW-extracted model (`canonical.RAW_MODELS`) — it is deliberately NOT in
+# `RESOLVED_CONFIGS`, so this file does not change how its cells are selected for the board. It
+# exists so the anchor can be RE-RUN as one unit, and so its provenance is a file rather than a
+# side effect.
+benchmark: insur-arena-v0.2-glm-anchor
+profile: full
+subsample_rows: null
+split:
+  small_threshold: 2500
+  small: {folds: 3, repeats: 10}
+  large: {folds: 3, repeats: 3}
+tasks:
+  pp: {tweedie_power: 1.9}
+datasets:
+  - credit_g              # 1.0k
+  - brautocoll            # 1.3k
+  - autobi_us             # 1.3k
+  - swautoins             # 2.2k
+  - swautoins_pp          # 2.2k
+  - freclaimdam           # 3.9k
+  - autoclaims_us         # 6.8k
+  - sgautonb              # 7.5k
+  - tic2000               # 9.8k
+  - eusavingul            # 22k
+  - ausautoBI             # 22k
+  - eudirectlapse         # 23k
+  - uslapseagent          # 29k
+  - fremotor_payfreq      # 52k
+  - fremotor_prem         # 52k
+  - prudential_life       # 59k
+  - ohlsson               # 62k
+  - ohlsson_pp            # 62k
+  - ausprivauto           # 68k
+  - ausprivauto_clf       # 68k
+  - ausprivauto_pp        # 68k
+  - beMTPL16              # 71k
+  - pg16_payfreq          # 87k
+  - catelematic13         # 100k
+  - pg17_coverage         # 100k
+  - pg17_payfreq          # 100k
+  - pg15training          # 100k
+  - give_me_some_credit   # 150k
+  - beMTPL97              # 163k
+  - beMTPL97_pp           # 163k
+  - euhealth              # 176k
+  - euhealth_pp           # 176k
+  - norauto               # 184k
+  - allstate_sev          # 188k
+  - homesite_conv         # 261k
+  - brvehins1             # 383k
+  - brvehins1_pp          # 383k
+  - freMTPLfreq           # 413k
+  - porto_seguro          # 595k
+  - freMTPL2freq          # 678k  (canonical)
+models:
+  - {name: glm, variants: [default]}
+storage: {cache_dir: runs/benchmark, store_predictions: false, use_cache: true,
+          max_workers: 10, threads_per_worker: 2}

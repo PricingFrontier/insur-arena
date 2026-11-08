@@ -1,0 +1,33 @@
+# Straggler rerun of configs/shards/xgboost__homesite_conv.yaml with max_workers 3 (outer splits in
+# parallel). max_workers is absent from every cache key; verified below by gen_shard_configs.verify.
+benchmark: insur-arena-v0.2-xgb-default-tuned-all--shard-homesite_conv--straggler-mw3
+datasets:
+- homesite_conv
+hpo:
+  inner_folds: 3
+  inner_repeats: auto
+  n_configs: 25
+models:
+- name: xgboost
+  variants:
+  - default
+  - tuned
+profile: full
+split:
+  large:
+    folds: 3
+    repeats: 3
+  small:
+    folds: 3
+    repeats: 10
+  small_threshold: 2500
+storage:
+  cache_dir: runs/benchmark
+  store_predictions: false
+  use_cache: true
+  max_workers: 3
+  threads_per_worker: 2
+subsample_rows: null
+tasks:
+  pp:
+    tweedie_power: 1.9

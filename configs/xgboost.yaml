@@ -1,0 +1,64 @@
+# XGBoost default + tuned across the FULL eligible catalog, selection protocol v2.
+# Defaults are recomputed here: the bulk of the old xgboost default cells predate adapter v4
+# (hist + native categoricals) and no longer match current signatures — the pre-v4 timings
+# (up to 7.6h/fit) do not reflect the current adapter (~91s worst-case probe+refit).
+benchmark: insur-arena-v0.2-xgb-default-tuned-all
+profile: full
+subsample_rows: null
+split:
+  small_threshold: 2500
+  small: {folds: 3, repeats: 10}
+  large: {folds: 3, repeats: 3}
+hpo:
+  n_configs: 25
+  inner_folds: 3
+  inner_repeats: auto
+  fold_workers: 3        # inner folds of each candidate in parallel — wall-clock only, NOT in any
+                         # cache key.
+tasks:
+  pp: {tweedie_power: 1.9}
+datasets:
+  - credit_g              # 1.0k
+  - brautocoll            # 1.3k
+  - autobi_us             # 1.3k
+  - swautoins             # 2.2k
+  - swautoins_pp          # 2.2k
+  - freclaimdam           # 3.9k
+  - autoclaims_us         # 6.8k
+  - sgautonb              # 7.5k
+  - tic2000               # 9.8k
+  - eusavingul            # 22k
+  - ausautoBI             # 22k
+  - eudirectlapse         # 23k
+  - uslapseagent          # 29k
+  - fremotor_payfreq      # 52k
+  - fremotor_prem         # 52k
+  - prudential_life       # 59k
+  - ohlsson               # 62k
+  - ohlsson_pp            # 62k
+  - ausprivauto           # 68k
+  - ausprivauto_clf       # 68k
+  - ausprivauto_pp        # 68k
+  - beMTPL16              # 71k
+  - pg16_payfreq          # 87k
+  - catelematic13         # 100k
+  - pg17_coverage         # 100k
+  - pg17_payfreq          # 100k
+  - pg15training          # 100k
+  - give_me_some_credit   # 150k
+  - beMTPL97              # 163k
+  - beMTPL97_pp           # 163k
+  - euhealth              # 176k
+  - euhealth_pp           # 176k
+  - norauto               # 184k
+  - allstate_sev          # 188k
+  - homesite_conv         # 261k
+  - brvehins1             # 383k
+  - brvehins1_pp          # 383k
+  - freMTPLfreq           # 413k
+  - porto_seguro          # 595k
+  - freMTPL2freq          # 678k  (canonical)
+models:
+  - {name: xgboost, variants: [default, tuned]}
+storage: {cache_dir: runs/benchmark, store_predictions: false, use_cache: true,
+          max_workers: 10, threads_per_worker: 2}

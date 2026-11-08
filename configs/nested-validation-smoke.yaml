@@ -1,0 +1,24 @@
+# Synthetic protocol check only; caps here are not benchmark defaults.
+benchmark: nested-validation-smoke
+profile: lite
+subsample_rows: 600
+datasets: [synthetic_freq]
+split:
+  small_threshold: 2500
+  small: {folds: 3, repeats: 1}
+  large: {folds: 3, repeats: 1}
+hpo:
+  n_configs: 1
+  inner_folds: 2
+  inner_repeats: 1
+  fold_workers: 1
+models:
+  - {name: glm, variants: [default, tuned]}
+  - {name: lightgbm, variants: [default, tuned], hp: {n_estimators: 12}}
+  - {name: t-boost, variants: [default, tuned], hp: {n_estimators: 12, n_bags: 2}}
+storage:
+  cache_dir: runs/nested-validation-smoke
+  store_predictions: true
+  use_cache: true
+  max_workers: 1
+  threads_per_worker: 1

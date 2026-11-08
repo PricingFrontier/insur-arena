@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Benchmark outputs / caches
+#
+# Nothing under runs/ is tracked — it is local run state, and none of it is the published unit:
+#   runs/*/cells/        ~44k tiny per-cell JSONs, one per (model, variant, dataset, split,
+#                        protocol generation); they made the repo hostile to clone
+#   runs/*/datasets/     raw fetched data — several sources are fetch-only /
+#                        non-redistributable (the benchmark never re-hosts data)
+#   runs/*/predictions/  per-row dumps, which include target values (i.e. data rows)
+#   hpo_evaluations.json, trajectories.json, elo_chart.png — regenerated every run
+#
+# The canonical, publishable form is `results/leaderboard_cells.csv`: ONE row per
+# (model, variant, dataset, split_id), written by `scripts/elo_ladder.py --export` via
+# `insurarena.results.canonical`, alongside `results/elo_ladder.csv` and `results/elo_chart.png`.
+# The caches stay on disk locally for replay.
+/runs/
+*.parquet
+*.npz
+results.csv
+
+# Campaign scratch: driver logs, batteries, quarantined caches — kept on disk, out of git
+/scratchpad/
+/*.log
+/*.pid
+catboost_info/
+# local secrets (API tokens)
+.env

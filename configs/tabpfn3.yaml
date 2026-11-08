@@ -1,0 +1,65 @@
+# TabPFN-3 (hosted Prior Labs API backend) — the black-box foundation comparator, default variant
+# only (it has no tuned variant on this board), across the full eligible catalog (40 datasets). The
+# split block must stay identical to the other campaign configs so its cells land on the same rows.
+#
+# The API does not return the fitted model and predictions are not stored, so these cells carry no
+# retained evidence (`evidence_retained: false`). The board selects them by model and data
+# generation, not by cell key, so they stay on the board as the harness changes. Running this config
+# calls the paid API for every cell whose key has moved, which after any edit under src/insurarena
+# is all of them.
+#
+# Needs the Prior Labs token at ~/.cache/tabpfn/auth_token (or TABPFN_TOKEN).
+benchmark: insur-arena-v0.2-tabpfn3
+profile: full
+subsample_rows: null
+split:
+  small_threshold: 2500
+  small: {folds: 3, repeats: 10}
+  large: {folds: 3, repeats: 3}
+datasets:
+  - credit_g              #   1,000 x  20  clf
+  - brautocoll            #   1,314 x   5  clf
+  - autobi_us             #   1,340 x  11  sev
+  - swautoins             #   2,182 x   4  freq
+  - swautoins_pp          #   2,182 x   4  pp
+  - freclaimdam           #   3,948 x   6  sev
+  - autoclaims_us         #   6,773 x   4  sev
+  - sgautonb              #   7,483 x  12  freq
+  - tic2000               #   9,822 x  85  clf
+  - eusavingul            #  21,921 x   5  clf
+  - ausautoBI             #  22,036 x  13  sev
+  - eudirectlapse         #  23,060 x  18  clf
+  - uslapseagent          #  29,317 x   9  clf
+  - fremotor_payfreq      #  51,949 x  18  multiclf
+  - fremotor_prem         #  51,949 x  19  sev
+  - prudential_life       #  59,381 x 139  multiclf
+  - ohlsson               #  62,474 x   6  freq
+  - ohlsson_pp            #  62,474 x   6  pp
+  - ausprivauto           #  67,856 x   6  freq
+  - ausprivauto_clf       #  67,856 x   6  clf
+  - ausprivauto_pp        #  67,856 x   6  pp
+  - beMTPL16              #  70,791 x  15  freq
+  - pg16_payfreq          #  87,228 x  14  multiclf
+  - catelematic13         # 100,000 x  49  freq
+  - pg17_coverage         # 100,000 x  27  multiclf
+  - pg17_payfreq          # 100,000 x  27  multiclf
+  - pg15training          # 100,021 x  13  freq
+  - give_me_some_credit   # 150,000 x  12  clf
+  - beMTPL97              # 163,212 x  12  freq
+  - beMTPL97_pp           # 163,212 x  12  pp
+  - euhealth              # 176,032 x   4  freq
+  - euhealth_pp           # 176,032 x   4  pp
+  - norauto               # 183,999 x   4  freq
+  - allstate_sev          # 188,318 x 130  sev
+  - homesite_conv         # 260,753 x 301  clf
+  - brvehins1             # 382,621 x  12  freq
+  - brvehins1_pp          # 382,621 x  12  pp
+  - freMTPLfreq           # 413,169 x   7  freq
+  - porto_seguro          # 595,212 x  50  clf
+  - freMTPL2freq          # 678,013 x   9  freq
+models:
+  - {name: tabpfn3, variants: [default]}
+# API-bound workload: the server tolerated 8 concurrent requests; process-parallel workers are the
+# lever, since threads in one process serialize on the client session.
+storage: {cache_dir: runs/benchmark, store_predictions: false, use_cache: true,
+          max_workers: 6}

@@ -1,0 +1,21 @@
+# Cross-task demo — frequency + severity + pure-premium + classification in one run.
+# Shows the task-aware GLM/LightGBM adapters across the four task types.
+benchmark: insur-arena-v0.2
+profile: lite
+subsample_rows: 50000
+split:
+  small_threshold: 2500
+  small: {folds: 3, repeats: 3}
+  large: {folds: 3, repeats: 1}
+hpo:
+  n_configs: 16
+datasets:
+  - freMTPL2freq        # frequency  (Poisson)
+  - autobi_us           # severity   (Gamma)
+  - ausprivauto_pp      # pure prem. (Tweedie)
+  - credit_g            # classification (Bernoulli)
+  - give_me_some_credit # classification (Bernoulli)
+models:
+  - {name: glm,       variants: [default, tuned]}
+  - {name: lightgbm,  variants: [default, tuned]}
+storage: {cache_dir: ~/.cache/insurarena, store_predictions: true}

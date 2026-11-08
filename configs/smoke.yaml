@@ -1,0 +1,17 @@
+# Offline CI/dev profile — synthetic data, default configs, runs in seconds (SPEC §5.7).
+benchmark: insur-arena-v0.1
+profile: smoke
+subsample_rows: 4000
+split:
+  small_threshold: 2500
+  small: {folds: 3, repeats: 1}
+  large: {folds: 3, repeats: 1}
+hpo:
+  n_configs: 4
+datasets: [synthetic_freq]
+models:
+  - {name: glm        ,       variants: [default]}
+  # hp override keeps the smoke run to seconds (full rounds live in lite/full)
+  - {name: lightgbm   ,  variants: [default],
+     hp: {n_estimators: 120, learning_rate: 0.1, num_leaves: 15}}
+storage: {cache_dir: ~/.cache/insurarena-smoke, store_predictions: true}
