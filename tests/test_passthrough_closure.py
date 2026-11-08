@@ -74,7 +74,7 @@ def test_the_two_sets_are_disjoint():
 
 
 def test_a_key_this_adapter_searches_but_does_not_forward_raises(monkeypatch):
-    # The guard itself, at its real scope: a dimension tri-boost's OWN machinery can emit that is
+    # The guard itself, at its real scope: a dimension t-boost's OWN machinery can emit that is
     # not wired through `_PASSTHROUGH`. Simulated by widening the producible set, because the
     # closure currently holds — which is the point of the test above.
     from insurarena.models import tboost_model as TM
@@ -102,7 +102,7 @@ def test_gate_written_keys_need_not_be_listed_for_the_fit_to_be_correct():
     # Scope note, asserted so the closure is not over-read. The av40 size gate writes
     # `overrides[k] = v` DIRECTLY, after this filter, so a gate-written key reaches the estimator
     # whether or not it is in `_PASSTHROUGH`. It is listed so an explicit `hp` value can OUTRANK
-    # the gate — a different contract, covered by tests/test_triboost_fidelity_gate.py.
+    # the gate — a different contract, covered by tests/test_tboost_fidelity_gate.py.
     for k in ("prune_fold_fidelity", "prune_keep_budget"):
         assert k in _PASSTHROUGH, (
             f"{k} is gate-written; it is listed so explicit hp can outrank the gate"

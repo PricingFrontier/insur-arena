@@ -18,7 +18,7 @@ _OBJ = {TaskType.FREQ: "poisson_deviance", TaskType.SEV: "gamma_deviance"}
 
 # EBM's outer_bags AVERAGES per-feature shape functions across bags -> the result is still ONE GA2M
 # (one shape function per feature / interaction pair), so interpretability is fully preserved
-# (analogous to tri-boost's exactness-preserving bagging). We enable it, but only on the *deployed*
+# (analogous to t-boost's exactness-preserving bagging). We enable it, but only on the *deployed*
 # model: during the tuned OOF search we fit a single bag for speed (bagging is a fixed structural
 # choice, not a tuned hyper-parameter). Library default is 14; 4 keeps most of the variance-reduction
 # benefit (diminishing returns past ~4) while staying tractable with interactions on wide datasets
@@ -35,7 +35,7 @@ _EBM_KEYS = ("learning_rate", "interactions", "max_leaves", "smoothing_rounds", 
 _N_INTERACTIONS = 16                     # fixed COUNT of pairwise interactions (GA2M). TabArena's
                                          # '5x'/0.95-0.999 FRACTION -> ~100 pairs on our wide, high-
                                          # cardinality insurance data = intractable; a bounded count
-                                         # keeps EBM a real GA2M (interaction capacity ~ tri-boost's) yet
+                                         # keeps EBM a real GA2M (interaction capacity ~ t-boost's) yet
                                          # runnable. Necessary deviation from Table C.6's fraction.
 
 

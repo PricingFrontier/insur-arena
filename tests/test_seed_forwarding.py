@@ -22,7 +22,7 @@ def _bundle(n: int = 300, data_seed: int = 0) -> DatasetBundle:
     )
 
 
-def test_fit_one_forwards_cell_seed_to_triboost():
+def test_fit_one_forwards_cell_seed_to_tboost():
     model = fit_one("t-boost", {"budget": 50, "n_bags": 1}, _bundle(), seed=123)
 
     assert model.model.get_params()["seed"] == 123
@@ -34,7 +34,7 @@ def test_fit_one_explicit_hp_seed_beats_cell_seed():
     assert model.model.get_params()["seed"] == 7
 
 
-def test_fit_one_triboost_is_deterministic_per_seed():
+def test_fit_one_tboost_is_deterministic_per_seed():
     bundle = _bundle()
 
     # n_bags=1: only the seed-forwarding/determinism behavior is under test here, not the (now

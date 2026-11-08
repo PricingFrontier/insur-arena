@@ -1,6 +1,6 @@
 """hsv 18 (2026-08-23) — the tuned-selection upgrade, three parts:
 
-  (a) `max_bin` becomes a searchable dimension of tri-boost's static grid;
+  (a) `max_bin` becomes a searchable dimension of t-boost's static grid;
   (b) a deterministic coordinate-probe block replaces the head of the random basis;
   (c) the protocol-v3 pooled finale reaches large sets, but only on a near-tie gate.
 
@@ -33,7 +33,7 @@ from insurarena.models.tboost_model import (
 # a one-line edit here and the tests that pin the campaign's own balance/coverage cannot silently
 # drift off it.
 _N_CAMPAIGN = 25
-#: every other tunable model's budget. tri's must equal it — see
+#: every other tunable model's budget. t-boost's must equal it — see
 #: `test_tri_races_the_same_budget_as_every_comparator`.
 _N_COMPARATOR = 25
 
@@ -433,7 +433,7 @@ def test_ship_gate_se_mult_defaults_to_one_for_every_other_model():
         assert hpo._gate_se_mult(name, 1) == 1.0
 
 
-def test_triboost_gate_bar_scales_with_inner_repeats():
+def test_tboost_gate_bar_scales_with_inner_repeats():
     # inner_repeats == clip(ceil(30000 / n_outer_train), 1, 5): the arena's own under-power flag.
     assert TBoost.ship_gate_se_mult(1) == 1.0        # large sets: unchanged, bar stays 1 SE
     assert TBoost.ship_gate_se_mult(2) == 2.0        # uslapseagent-sized
@@ -519,7 +519,7 @@ def test_shipped_default_deploy_is_untouched(monkeypatch, mode, extras):
     locks the mechanism so a future finale/gate rework cannot quietly change it:
       * the returned hp is EXACTLY `default_hp()` — no config seed, no probe key, no finale key;
       * best_iter comes from the default anchor's own evaluation, so for an internally-early-
-        stopping adapter (tri-boost: `best_iteration_` is always 0) it is 0, and `fit_one` is
+        stopping adapter (t-boost: `best_iteration_` is always 0) it is 0, and `fit_one` is
         therefore called with n_estimators=None — the same pure-internal-ES path the `default`
         variant takes.
     """
@@ -542,9 +542,9 @@ def test_shipped_default_deploy_is_untouched(monkeypatch, mode, extras):
     assert best_iter == 0, "an internally-early-stopping adapter must not pin n_estimators"
 
 
-def test_triboost_never_reports_a_best_iteration():
+def test_tboost_never_reports_a_best_iteration():
     # The invariant the regression above leans on, asserted against a real fit rather than a mock:
-    # tri-boost early-stops internally, so a shipped-default selection can never pin n_estimators.
+    # t-boost early-stops internally, so a shipped-default selection can never pin n_estimators.
     import pandas as _pd
     from insurarena.datasets.base import DatasetBundle
     from insurarena.models.registry import build_model
@@ -632,7 +632,7 @@ def test_the_grid_is_exactly_the_hsv19_seven_dimensions():
 
 
 def test_no_candidate_ever_asks_for_an_order_deeper_than_its_tree():
-    # tri-boost REFUSES `max_interaction_order > max_depth` (an oblivious tree needs one level per
+    # t-boost REFUSES `max_interaction_order > max_depth` (an oblivious tree needs one level per
     # distinct raw feature). The sampled grid's order tops out at 3 and depth bottoms out at 3, so
     # no draw is illegal — but the two dimensions cycle under independent seeds, so this must be
     # asserted, not assumed. It also covers the hsv-22 (depth 5, order 4) probe, which is legal
@@ -680,7 +680,7 @@ def test_depth_gate_pins_the_table_budget_on_lifted_fits_only(depth, expect_budg
     assert m.depth_gate_["applied"] == expect_budget
 
     # ...and the SCOUT regime, where `_prune_during_hpo: False` turns pruning off. The cap is a
-    # deploy-time trim of the prune's keep-set and tri-boost REFUSES it on an unpruned fit, so the
+    # deploy-time trim of the prune's keep-set and t-boost REFUSES it on an unpruned fit, so the
     # gate must not inject it there — and must drop an explicit one rather than let the fit raise.
     scout = build_model("t-boost", hp={**hp, "_prune_during_hpo": False,
                                         "prune_table_budget": 100}).fit(bundle, bundle)
@@ -806,7 +806,7 @@ def test_random_strength_is_reachable_but_no_longer_searched():
 
 
 def test_tri_races_the_same_budget_as_every_comparator():
-    # THE FAIRNESS INVARIANT (av45). tri-boost had drifted to 29 candidates against every other
+    # THE FAIRNESS INVARIANT (av45). t-boost had drifted to 29 candidates against every other
     # tunable model's 25 — a tuning-budget advantage on the one axis a benchmark most has to keep
     # level. `static_configs` holds len == n_configs + 1 for every model, probes or not, so the
     # max-of-N the ship gate defends against is now identical across the five tunable models.
@@ -849,7 +849,7 @@ def test_the_cell_refit_probe_is_inert_at_scout_fidelity_and_says_so():
 @pytest.mark.parametrize("n_bags,expect_kept", [(1, False), (2, True)])
 def test_cell_refit_base_is_dropped_wherever_the_fit_cannot_honor_it(n_bags, expect_kept):
     # The space is task-blind, so every candidate carries the key — including on the 35
-    # non-MULTICLF datasets and on every 1-bag scout eval, where tri-boost RAISES rather than
+    # non-MULTICLF datasets and on every 1-bag scout eval, where t-boost RAISES rather than
     # silently no-opping. The gate is therefore a FILTER as well as an injector.
     import pandas as _pd
     from insurarena.datasets.base import DatasetBundle
@@ -1209,15 +1209,15 @@ def test_the_campaign_configs_carry_the_budget_the_tail_needs():
     from insurarena.results.canonical import campaign_configs
 
     root = pathlib.Path(__file__).resolve().parents[1]
-    # av45: ONE tri-boost config resolves the board, like every comparator. The per-dataset `ffull`
+    # av45: ONE t-boost config resolves the board, like every comparator. The per-dataset `ffull`
     # (5 sub-2500 sets) and eusavingul (a FULL candidate pin, seed included) configs are DELETED —
     # their behavior lives in the adapter's size gate and in the general config's own probe block +
     # finale re-race. A second t-boost config would re-open exactly the asymmetry av45 closed, so
     # this asserts the COUNT the leaderboard extraction uses, not just the contents of one file.
     # (`configs/` now holds exactly one campaign config per model, at `configs/<model>.yaml`.)
-    tri = [c for m, c in campaign_configs(root) if m == "t-boost"]
-    assert tri == ["configs/t-boost.yaml"], tri
-    for rel in tri:
+    tb = [c for m, c in campaign_configs(root) if m == "t-boost"]
+    assert tb == ["configs/t-boost.yaml"], tb
+    for rel in tb:
         cfg = yaml.safe_load((root / rel).read_text())
         n = int(cfg["hpo"]["n_configs"])
         assert n == _N_CAMPAIGN == _N_COMPARATOR, rel

@@ -19,7 +19,7 @@ from pathlib import Path
 import pandas as pd
 
 NAMES = {
-    "t-boost": "t-boost", "triboost": "t-boost", "lightgbm": "LightGBM", "xgboost": "XGBoost",
+    "t-boost": "t-boost", "lightgbm": "LightGBM", "xgboost": "XGBoost",
     "catboost": "CatBoost", "ebm": "EBM", "tabpfn3": "TabPFN", "glm": "GLM",
 }
 FOCUS = "t-boost"

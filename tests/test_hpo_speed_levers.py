@@ -1,4 +1,4 @@
-"""Tuning-speed levers (tri-boost design/tuning-speed-roadmap.md, verified 2026-07-15):
+"""Tuning-speed levers (t-boost design/tuning-speed-roadmap.md, verified 2026-07-15):
 A1 fold-parallel candidate evals, A2 fold-1 racing, B3 selection-only hp overlay."""
 
 import numpy as np
@@ -16,7 +16,7 @@ def _bundle(n=1200):
 
 
 def test_fold_parallel_is_bit_identical_to_serial():
-    # tri-boost is bit-deterministic across thread counts BY DESIGN, which makes it the
+    # t-boost is bit-deterministic across thread counts BY DESIGN, which makes it the
     # right oracle for this identity check — lightgbm's histogram sums are timing-sensitive
     # under machine load unless deterministic flags are set, and flaked here once.
     pytest.importorskip("t_boost")
@@ -113,7 +113,7 @@ def test_racing_off_by_default_and_raced_payloads_never_cached():
 # --- B3: selection-only hp overlay -----------------------------------------------------------------
 
 
-def test_triboost_selection_hp_applies_to_selection_fits_only():
+def test_tboost_selection_hp_applies_to_selection_fits_only():
     pytest.importorskip("t_boost")
     from insurarena.models.registry import build_model, model_class
 
@@ -232,8 +232,8 @@ def test_finale_skipped_when_adapter_declares_none():
     assert hp == {"hurdle": 0.5}
 
 
-def test_triboost_static_candidates_leave_n_bags_to_recipe():
-    # Post-migration (2026-07-20) tri-boost tunes on the static basis, not a coordinate walk:
+def test_tboost_static_candidates_leave_n_bags_to_recipe():
+    # Post-migration (2026-07-20) t-boost tunes on the static basis, not a coordinate walk:
     # n_bags is not a tuned dimension. Since hsv 15 (2026-07-22) it is also NOT pinned in the
     # candidate hp — the recipe's bag count is objective-aware (gamma/tweedie 16, else 8) and an
     # hp pin would override it on champion deploys while the {budget}-only anchor picked up the

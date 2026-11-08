@@ -1,4 +1,4 @@
-"""av35 rare-floor gate: open tri-boost's `cat_min_data_per_group` where the library's weighted
+"""av35 rare-floor gate: open t-boost's `cat_min_data_per_group` where the library's weighted
 10.0 floor is destroying a categorical rather than regularizing it.
 
 The floor is stated in units of POOLING WEIGHT and this adapter passes `sample_weight=exposure`,

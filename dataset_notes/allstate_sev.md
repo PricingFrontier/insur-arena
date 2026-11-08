@@ -9,9 +9,9 @@
 - **IID audit:** random split appropriate (published IID use).
 - **Non-trivial check:** the canonical task GLM must beat an intercept-only model (skill-vs-GLM has a non-degenerate spread); trivial/perfect-fit datasets are excluded.
 - **Notes:** Allstate Claims Severity, 188k, 130 anon features.
-- **tri-boost characterization (2026-08-04): diffuse-representation-limit dataset.** The
+- **t-boost characterization (2026-08-04): diffuse-representation-limit dataset.** The
   anonymized signal is spread across ~10,000 weak, correlated fANOVA supports (130 mains +
-  thousands of order-2/3 tables). tri-boost's *unpruned* deploy ensemble BEATS constrained
+  thousands of order-2/3 tables). t-boost's *unpruned* deploy ensemble BEATS constrained
   catboost on every split tested (s0 0.28238 vs 0.28580; s7 0.28063 vs 0.28390, gamma
   deviance), and the table-bank conversion is lossless (keep=ALL = ensemble to 2e-5) — but no
   product-sized table set can hold the signal: the K-curve from one fitted model reads
@@ -23,4 +23,4 @@
   explainability contract is what pays). The av33 set-level prune guard bounds the loss
   (blow-up splits like s7's +23% selection detonations are caught and relaxed); the residual
   base gap vs ccb at default tol is the accepted cost. Full forensics:
-  t-boost-vs-ccb-gap-2026-08-04 memory + tri-boost/speed_accuracy_work.md.
+  t-boost-vs-ccb-gap-2026-08-04 memory + t-boost/speed_accuracy_work.md.

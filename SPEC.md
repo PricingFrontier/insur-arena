@@ -155,17 +155,16 @@ Bucket on `N_eff` = number of groups:
 
 Reported number = **mean Skill across splits, with across-split SD**.
 
-### 5.2 Config selection & inner split — tuned-once full run
+### 5.2 Config selection & inner split: nested tuning
 
-There are two official regimes: **default** and **tuned-once**. The `tuned` config is selected once
-per `(dataset, model)` by k-fold out-of-fold (OOF) validation on the outer-train pool of
-`tune_split_id` (default split 0). The selected hyper-parameters, including the OOF-derived boosting
-iteration count when available, are then reused for every outer split. Each reported cell is still
-**one model refit on that split's outer-train** — no bagging, stacking, or benchmark-level ensembling.
+There are two official regimes: **default** and **tuned**. The `tuned` config is selected separately
+inside every outer split, by k-fold out-of-fold (OOF) validation on that split's outer-train pool.
+The selected hyper-parameters, including the OOF-derived boosting iteration count when available,
+apply to that split only. Each reported cell is still **one model refit on that split's outer-train**,
+with no bagging, stacking, or benchmark-level ensembling.
 
-This is intentionally not full per-split nested HPO: the full default benchmark already takes days on
-a workstation, and per-split tuning would multiply that by the HPO budget. Tuned-once is the main
-tractable tuned leaderboard; it should be described as such.
+This multiplies the cost of a tuned run by the number of outer splits, which is the price of keeping
+every test fold out of selection. See [docs/nested-campaign.md](docs/nested-campaign.md).
 
 ### 5.3 Splitting strategy (insurance is often not IID)
 
@@ -189,7 +188,7 @@ datasets — enables caching, reproducibility, and tuning trajectories). Search 
 `n_estimators` large + early stopping (not tuned), as in TabArena. Budget is in **configs** (`full`
 200, `lite` 32) with an optional `time_budget_s` that stops the search early. A bad config is
 skipped, never aborts the search. The **tuning trajectory** (best-so-far OOF vs #configs) is stored
-once per `(dataset, model)` and reported. `default` and `tuned` are ranked separately — a rank column
+for every tuned cell and reported. `default` and `tuned` are ranked separately — a rank column
 never mixes HPO regimes.
 
 **Selection protocol v2 (noise-aware).** Candidate OOF scores are recorded **per fold** on folds
@@ -201,11 +200,11 @@ standard error of the paired per-fold differences; otherwise the default's hyper
 (with the default's OOF-derived iteration count). This caps the downside of tuning at ~zero on
 small/sparse portfolios, where argmax-over-noisy-scores otherwise pays the winner's curse, while
 leaving genuine wins untouched. The decision and its evidence (margin, SE, fold count) are stored
-in the tuned-once choice cell. Coordinate (greedy) plans get the same treatment: the true default
+in the tuned choice cell. Coordinate (greedy) plans get the same treatment: the true default
 is evaluated first as candidate 0, each stage move must beat the stage incumbent by >1 paired-fold
 SE (the declared prefer/defended near-tie rules keep their authority), and the finished walk passes
 the same default ship-gate. The default anchor and tuned-family base are protocol overhead:
-`n_configs` still counts stage evaluations only (tri-boost's full plan needs 14).
+`n_configs` still counts stage evaluations only (t-boost's full plan needs 14).
 
 **Search-cost levers (never fidelity levers).** Three opt-in `hpo:` keys cut search wall-clock. All
 three touch only how candidates are *ranked against each other*; the shipped model is always refit
@@ -317,7 +316,7 @@ routes, and per-dataset status: **`DATASETS.md`**.
 
 **Per-cell result cache (incremental runs).** Each cell — one `(dataset, model, variant, split)` —
 is cached under a signature hashing the dataset **content hash** (which encodes the subsample), the
-model/variant/hp-override, the split id, and a **protocol fingerprint** (split schedule, tuned-once
+model/variant/hp-override, the split id, and a **protocol fingerprint** (split schedule,
 HPO settings, Tweedie power, protocol version). A run reuses every cell it has already
 computed and only runs the rest — so **adding a model or dataset, or extending the subsample, or
 changing the tuning protocol, re-runs just the affected cells.** Cache lives in `cache_dir/cells/`;
@@ -327,7 +326,7 @@ Stored TabRepo-style (predictions enable offline metric/CD/calibration recompute
 simulation). Per `(dataset, task, model, variant, split)`: metrics, skill, **train + inference time**
 (→ an efficiency/Pareto view), resolved seed, predictions path, and a `failed` field. **Failure
 tolerance:** any single cell that errors is recorded with its error and skipped — it never aborts the
-run. **Tuning trajectories** (best-so-far OOF vs #configs) are stored for tuned-once selections. Seeds are a
+run. **Tuning trajectories** (best-so-far OOF vs #configs) are stored for tuned selections. Seeds are a
 stable **hash of the identifying tuple**; determinism holds within a pinned environment, with metrics
 reproducing within tolerance (GBM/GPU float reductions aren't bit-exact). Dataset identity is pinned
 by content hash (resolves the freMTPL2 678,013-vs-678,007 divergence; canonical = OpenML).

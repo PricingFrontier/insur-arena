@@ -76,7 +76,7 @@ def _same_value(a, b) -> bool:
 def coordinate_probes(model_name: str, n_configs: int) -> list[dict]:
     """The adapter's deterministic one-knob-off-base probe block, truncated to the budget.
 
-    An adapter may declare `coordinate_probe_hp_set() -> list[dict]` (tri-boost only, hsv 18,
+    An adapter may declare `coordinate_probe_hp_set() -> list[dict]` (t-boost only, hsv 18,
     2026-08-23): a fixed, seedless list of candidates that each move EXACTLY ONE coordinate off
     the tuned-family base. They take the nominal indices immediately after the default anchor and
     REPLACE that many draws of the random basis (see `static_configs`), so the candidate count —
@@ -111,7 +111,7 @@ def static_configs(model_name: str, n_configs: int, hp_override: dict | None = N
     `len(result) == n_configs + 1` at every n, probes or not, so the probe block DISPLACES basis
     draws instead of enlarging the candidate set.
 
-    An adapter may declare `sample_hp_set(n, seed) -> list[dict]` (tri-boost only, 2026-07-20) to
+    An adapter may declare `sample_hp_set(n, seed) -> list[dict]` (t-boost only, 2026-07-20) to
     draw the whole candidate set jointly space-filling instead of one independent `sample_hp` draw
     per index. That sampler's balance guarantees are properties of a CONTIGUOUS PREFIX (its joint
     (order, hurdle) cycle covers all 15 combinations once n >= 15), so it is asked for the reduced
@@ -213,7 +213,7 @@ def _oof_score(
     Tuning-speed levers (design/tuning-speed-roadmap.md, verified 2026-07-15):
     - `fold_workers > 1` (A1) runs the independent (repeat, fold) fits in a thread pool —
       per-fit results are deterministic given their seeds, so scores are bit-identical to the
-      serial order; wall-clock only. Fits release the GIL (tri-boost/lightgbm/xgboost).
+      serial order; wall-clock only. Fits release the GIL (t-boost/lightgbm/xgboost).
     - `selection_hp` (B3) is the adapter's declared selection-only hp overlay (see
       `ModelAdapter.selection_hp`), merged into the fit hp here — and ONLY here, so deploy
       fits and the returned/cached candidate hp never carry it.
@@ -550,14 +550,14 @@ def _regime_recheck(model_name: str, hp: dict | None) -> bool:
 
     An adapter may declare `selection_regime_recheck(hp) -> bool`. False (and absent) means the
     scout overlay ranks the candidate in the same regime it deploys in, which is the case for
-    every knob on the board except one: tri-boost's `max_depth`.
+    every knob on the board except one: t-boost's `max_depth`.
 
     The trap this exists for, measured on allstate_sev (new-territory battery §H). The scout
     overlay sets `_prune_during_hpo: False`, so a depth-lifted candidate is RANKED with no prune
     and therefore no `prune_table_budget` — there is no keep-set to cap. Every fit that ships it
     (finale, and all 9 deploys) prunes and takes the cap. On a wide set the two regimes are not
     the same model: the depth-6 probe ranks +6.3 t uncapped, and the cap then costs -0.0209 skill
-    — more than the whole tri<->ccb2 gap the depth program is trying to close. A candidate ranked
+    — more than the whole t-boost<->ccb2 gap the depth program is trying to close. A candidate ranked
     in a regime it will never deploy in can win the argmax on evidence that does not survive
     contact with the shipped shape, and it displaces the runner-up while doing it.
 
@@ -583,7 +583,7 @@ def _ship_gate(evaluations: list[dict], champion_idx: int, lower_better: bool,
     zero instead of paying the winner's curse on small/sparse portfolios.
 
     `se_mult` defaults to the historical `_GATE_SE_MULT` (1.0) and is raised only by adapters that
-    declare `ship_gate_se_mult` — see that hook and tri-boost's override (hsv 19).
+    declare `ship_gate_se_mult` — see that hook and t-boost's override (hsv 19).
 
     `default_idx` points at the default-anchor evaluation to gate against — 0 (the walk's opening
     anchor) unless a ship-fidelity finale re-evaluated the anchor (then the finale's index).
@@ -612,7 +612,7 @@ def _ship_gate(evaluations: list[dict], champion_idx: int, lower_better: bool,
         # A champion cannot be gate-validated without a working default eval, and shipping it
         # ungated is how brautocoll deployed a winner's-curse champion 14% behind the default
         # (2026-07-22: the default anchor's eval crashed on a single-class inner-fold slice —
-        # tri-boost "logistic: no positive class under w" — while its full-train deploy fits
+        # t-boost "logistic: no positive class under w" — while its full-train deploy fits
         # fine). Conservative rule: ship the default. Its deploy either works, or fails as a
         # VISIBLE failed cell — never a silent regression.
         gate.update(shipped="default", reason="default_failed_ship_default")
@@ -754,7 +754,7 @@ def _model_rerace_spec(model_name: str) -> tuple[int, float] | None:
     """The adapter's top-K finale re-race settings, or None for "do not re-race" (the default).
 
     OPT-IN, and that is load-bearing rather than stylistic. `_select_config_static` is shared by
-    lightgbm / xgboost / catboost / ebm as well as tri-boost, and the re-race is model-generic BY
+    lightgbm / xgboost / catboost / ebm as well as t-boost, and the re-race is model-generic BY
     DESIGN — any adapter that declares a scout/finale fidelity split can turn it on. But turning it
     on for a model whose `hpo_search_version` is not bumped in the same breath would leave that
     model's cached tuned cells keyed identically to cells computed under a DIFFERENT selection
@@ -949,7 +949,7 @@ def _select_config_static(
     # racing exactly as the anchor is: the block exists so that each curated (dim, value) gets a
     # CLEAN look at the gate, and a fold-1 racing discard would deny it that look for the same
     # reason the joint basis did — noise attached to a single evaluation. They are also the cheap
-    # candidates (5 of tri-boost's 6 keep the base learning rate), so the exemption costs little,
+    # candidates (5 of t-boost's 6 keep the base learning rate), so the exemption costs little,
     # and it can only move the selection TOWARD the no-racing reference behavior.
     n_probes = len(coordinate_probes(model_name, n_configs))
     sel_hp = _model_selection_hp(model_name)
@@ -992,7 +992,7 @@ def _select_config_static(
     traj = _nominal_trajectory(evaluations, len(traj), lower_better)
 
     # Ship-fidelity finale (mirrors `_select_config_coordinate`): when the adapter's selection
-    # overlay reduces fit fidelity (tri-boost's 1-bag prune-free scout), the scout scores above are
+    # overlay reduces fit fidelity (t-boost's 1-bag prune-free scout), the scout scores above are
     # ranking evidence only. Re-evaluate the scout champion and the default anchor under the
     # adapter's finale overlay (matched fidelity on both sides) and take the ship gate + deployed
     # iteration count from those instead. A no-op for every other model: `finale_hp == sel_hp` skips
@@ -1022,7 +1022,7 @@ def _select_config_static(
             best_iter = int(payload.get("best_iter") or 0)
         else:
             # REGIME RECHECK (hsv 21, 2026-08-31). The scout's argmax may have been ranked in a
-            # regime it will never deploy in — for tri-boost, a depth-lifted candidate ranked with
+            # regime it will never deploy in — for t-boost, a depth-lifted candidate ranked with
             # the prune (and therefore the >=3-way TABLE cap) switched OFF. See `_regime_recheck`
             # for the allstate_sev measurement: uncapped rank t = +6.3, capped deploy -0.0209.
             #
@@ -1056,7 +1056,7 @@ def _select_config_static(
             ):
                 contenders.append((alt_hp, "regime_recheck"))
             # TOP-K FINALE RE-RACE (hsv 23, 2026-09-01). The scout ranks candidates at REDUCED
-            # fidelity — for tri-boost the selection overlay pins n_bags=1 — and on 30 of the 40
+            # fidelity — for t-boost the selection overlay pins n_bags=1 — and on 30 of the 40
             # hsv-22 cells the gap between scout rank 1 and rank 2 is under one paired-fold SE.
             # On 12 of those the coin-flip winner went on to SHIP, and only that one candidate was
             # ever measured at the fidelity it deploys in. eusavingul is the hard case: rank 2

@@ -27,11 +27,11 @@ def test_adapter_conformance(name):
     # an API-contract check, not an accuracy check, so every adapter gets capped to a tiny budget —
     # not just the classic GBMs: EBM only reads keys in _EBM_KEYS (+outer_bags/seed), so without an
     # explicit cap it fits at full library defaults (unbounded rounds, fractional interactions, 4
-    # bags, n_jobs=-1); tri-boost defaults to 8 in-model bags unless overridden. Extra keys are
+    # bags, n_jobs=-1); t-boost defaults to 8 in-model bags unless overridden. Extra keys are
     # harmlessly ignored by adapters that don't read them (each reads hp via .get()/allowlist).
     hp = {
         "n_estimators": 40, "iterations": 40,                      # classic GBMs
-        "n_bags": 1, "budget": 40,                                  # tri-boost: single bag, tiny cap
+        "n_bags": 1, "budget": 40,                                  # t-boost: single bag, tiny cap
         "interactions": 0, "smoothing_rounds": 1, "outer_bags": 1,  # EBM: without these it fits at full library defaults
         "backend": "local",                                         # tabpfn3: conformance must not hit the network
     }

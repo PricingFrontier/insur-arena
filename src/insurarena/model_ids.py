@@ -12,9 +12,7 @@ person or a config sees uses the new id.
 from __future__ import annotations
 
 #: new id -> the spelling its seeds and cell signatures were computed under (frozen forever)
-LEGACY_HASH_KEYS: dict[str, str] = {
-    "t-boost": "triboost",   # renamed 2026-09-24 (the product was renamed tri-boost -> t-boost)
-}
+LEGACY_HASH_KEYS: dict[str, str] = {}
 
 
 def hash_key(name: str) -> str:

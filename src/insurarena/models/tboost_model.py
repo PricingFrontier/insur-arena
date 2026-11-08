@@ -1,8 +1,8 @@
-"""tri-boost — a depth-3 oblivious gradient boosting machine that is interpretable (it decomposes to
+"""t-boost — a depth-3 oblivious gradient boosting machine that is interpretable (it decomposes to
 a functional-ANOVA table) yet insurance-native. A single, explainable fitted artifact.
 
 Configured via the library's OWN recipe (``t_boost.recommended_recipe``), which the author ships so
-an external harness "does not systematically under-report tri-boost": the load-bearing knobs are
+an external harness "does not systematically under-report t-boost": the load-bearing knobs are
 ``early_stopping_rounds=500`` (with adaptive patience), ``leaf_refine_steps``, and exactness-
 preserving in-model bagging (``n_bags=8``, now the constructor default in BOTH regimes); the tuned
 regime adds reanchoring and leakage-free k-fold categorical target encoding. That bagging is *within*
@@ -12,15 +12,15 @@ benchmark ``default`` -> recipe ``tuned=False``; benchmark ``tuned`` -> recipe `
 searches the tuned recipe family).
 
 Note on `ccb` below: the design notes in this file cite margins against "ccb" — constrained
-CatBoost, a CatBoost variant pinned to tri-boost's structural budget (``max_ctr_complexity=1``,
+CatBoost, a CatBoost variant pinned to t-boost's structural budget (``max_ctr_complexity=1``,
 depth free) that was carried as a measurement instrument while this adapter was developed. It is
 no longer part of the benchmark and ships no adapter, config or cells; the figures are retained
 because they are the evidence for choices this file still makes.
 
 Wired like the other GBMs for an apples-to-apples comparison: the target lives on the rate scale with
-``sample_weight=exposure`` (NOT tri-boost's native exposure-offset arg), predictions are on the rate
+``sample_weight=exposure`` (NOT t-boost's native exposure-offset arg), predictions are on the rate
 scale. Categoricals are handled natively (robust to unseen). Task -> objective: freq=poisson,
-sev=gamma, pp=tweedie, clf=logistic. Lazy import; optional dependency ``tri-boost``.
+sev=gamma, pp=tweedie, clf=logistic. Lazy import; optional dependency ``t-boost``.
 """
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-# tri-boost warns once per fit that it casts features to float32; expected + benign, so silence it
+# t-boost warns once per fit that it casts features to float32; expected + benign, so silence it
 # (otherwise it floods the benchmark log with one line per model fit).
 warnings.filterwarnings("ignore", message=".*converts input features to float32.*")
 
@@ -42,7 +42,7 @@ from insurarena.models.base import Explanation, ModelAdapter
 from insurarena.scoring import task_targets
 from insurarena.tasks import TaskType
 
-# task -> tri-boost objective string
+# task -> t-boost objective string
 _OBJ = {
     TaskType.FREQ: "poisson",
     TaskType.SEV: "gamma",
@@ -58,7 +58,7 @@ _PASSTHROUGH = (
     # scratchpad/explain_prune/CONSOLIDATION.md): 20 entries were removed because NOTHING set
     # them — not `_STATIC_TUNE_GRID`, not `_COORDINATE_PROBES`, not `tuning_base_hp` /
     # `default_hp` / `selection_hp`, not a fit-time gate, and not a config `hp:` block (no config
-    # sets any tri-boost hp at all since the av45 fairness cycle deleted the second campaign
+    # sets any t-boost hp at all since the av45 fairness cycle deleted the second campaign
     # config). This tuple enters NO cache proto, so the removal is byte-identical and costs no
     # recompute — verified by replaying cached cells at delta_vs_cache == 0.
     #
@@ -98,7 +98,7 @@ _PASSTHROUGH = (
     "ref_measure",          # 2026-09-06 ablation knob: purification measure (exposure vs product_marginals)
     "measure_floor",        # 2026-09-06 ablation knob: positivity floor of the exposure measure
     "cell_refit_base",
-    # av40 DEPTH DIMENSION (hsv 20). `max_depth` is the tri-boost depth-cells lift's own knob
+    # av40 DEPTH DIMENSION (hsv 20). `max_depth` is the t-boost depth-cells lift's own knob
     # (3..8; the library default and this benchmark's every prior cell is 3). It is a COORDINATE
     # PROBE, not a `_STATIC_TUNE_GRID` dimension (`tests/test_hpo_probes_and_pooled_finale.py`
     # asserts that), and `prune_table_budget` is the readability contract that rides with it:
@@ -124,7 +124,7 @@ _DEFAULT_BUDGET = 4000   # n_trees CAP; early stopping (rounds=500 in the recipe
 # ---------------------------------------------------------------------------------------------
 # The RARE-FLOOR GATE (adapter-side).
 #
-# tri-boost's categorical encoder pools every level holding less than `cat_min_data_per_group`
+# t-boost's categorical encoder pools every level holding less than `cat_min_data_per_group`
 # into a shared "rare" bucket before it computes a target statistic. The library default, 10.0,
 # is the right call on ordinary rating factors: a level seen by one policy has no credible mean,
 # and pooling it is what stops the encoder from memorizing. But the floor is stated in units of
@@ -136,7 +136,7 @@ _DEFAULT_BUDGET = 4000   # n_trees CAP; early stopping (rounds=500 in the recipe
 #
 # So the gate: measure the damage directly on the slice about to be fit, and open the floor to
 # 1.0 only where it is severe. The statistic is exactly what `collapse_rare_levels` thresholds —
-# the per-level sum of `CatRowTerm.denom` — and because this adapter leaves tri-boost's native
+# the per-level sum of `CatRowTerm.denom` — and because this adapter leaves t-boost's native
 # exposure-offset arg unused, that denom IS the `sample_weight` passed below, per row. The share
 # is therefore WEIGHTED, not a row count, which is the whole point: it is what separates pg17
 # (48% weighted) from brvehins1's `VehModel` (0.7% weighted but 4.2% of ROWS — a row-count gate
@@ -171,8 +171,8 @@ _BAGS_SMALL_BAGS = 32
 # SIZE-GATED FOLD FIDELITY + UNBOUNDED KEEP BUDGET (av 40, the av45 FAIRNESS cycle).
 #
 # WHY THIS IS A GATE AND NOT A CONFIG. Until av44 this pair of knobs reached the five sub-2500
-# datasets through a SECOND campaign config (`configs/tuned_triboost_small_ffull.yaml`), i.e.
-# tri-boost was the only model on the board resolving from more than one config while every
+# datasets through a SECOND campaign config (`configs/tuned_tboost_small_ffull.yaml`), i.e.
+# t-boost was the only model on the board resolving from more than one config while every
 # comparator ran exactly one. That is a benchmarking asymmetry, not a modelling one: the knobs
 # are chosen by DATASET SIZE, which the adapter can read for itself. Moving them into the adapter
 # makes the small-set behavior part of the MODEL — one config, same as lgb/xgb/catboost/ebm — and
@@ -205,14 +205,14 @@ _BAGS_SMALL_BAGS = 32
 # The readability price is stated, not buried: credit_g deploys ~186 tables instead of ~99, all of
 # them order-<=2 (the >=3-way census is 0.0 on all five sets, before and after).
 #
-# MULTICLF IS EXCLUDED. tri-boost REFUSES `prune_fold_fidelity` on the K>=3 prune path (it selects
+# MULTICLF IS EXCLUDED. t-boost REFUSES `prune_fold_fidelity` on the K>=3 prune path (it selects
 # on one train/select split and has no per-fold refits to pin a bank into) and that path takes no
 # keep-budget argument at all, so the gate would be handing a fit knobs it cannot honor — the same
 # filter discipline the cell-refit and depth gates keep. Inert today: the five gated sets are
 # CLF/SEV/FREQ/PP.
 _FIDELITY_KEEP_BUDGET = 1_000_000
 
-# K>=3 CELL REFIT (av 39). tri-boost's §G1 out-of-bag cell refit re-solves the realized
+# K>=3 CELL REFIT (av 39). t-boost's §G1 out-of-bag cell refit re-solves the realized
 # order-<=2 cell values against the bags' OWN out-of-bag rows after the soup is built — free
 # honest evidence the greedy in-fit budget never spent. It shipped for the single-output path
 # long ago; the mc-cellrefit branch extends it to K>=3 as K decoupled diagonal-Hessian solves
@@ -275,7 +275,7 @@ def _rare_floor_gate(X: pd.DataFrame, cat_cols: list[str], w: np.ndarray) -> dic
 # The tuned candidate space. Migrated 2026-07-20 from the greedy coordinate walk to the static
 # 25-candidate random-search basis, for cross-model methodology parity with lgb/xgb/catboost/ebm
 # (SPEC §5.5). The candidate SPACE is populated from the SAME knobs + validated value grids the
-# retired coordinate walk swept — not a fresh space — so tri-boost's domain knowledge (e.g. the
+# retired coordinate walk swept — not a fresh space — so t-boost's domain knowledge (e.g. the
 # interaction_gain_hurdle grid that steps over the mid-γ valley onto the γ≥1.5 plateau, and order-1
 # for the additive sweet spot) carries over. n_bags has no entry: scout evals fit 1 bag regardless
 # (selection_hp), deploys keep the recipe's objective-aware bag count (gamma/tweedie 16 since
@@ -288,17 +288,17 @@ _STATIC_TUNE_GRID = {
     "max_interaction_order": [1, 2, 3],
     "lambda_": [0.1, 1.0, 10.0],
     # Column subsampling. Widened 1.0/0.8 -> 1.0/0.8/0.6/0.45 at hsv 23 (2026-09-01) by the
-    # LightGBM gap forensic (lever 2). Every LightGBM cell tri
+    # LightGBM gap forensic (lever 2). Every LightGBM cell t-boost
     # loses to was reproduced BIT-EXACTLY and its champion read off: the winners on exactly the
     # sets in question sit at feature_fraction 0.43-0.61 — pg16_payfreq 0.43, credit_g 0.49,
     # swautoins 0.50, fremotor_prem 0.53, prudential_life 0.61 — i.e. the ENTIRE region the
-    # champions live in was below tri's floor and unreachable. Priced inside the contract, not
+    # champions live in was below t-boost's floor and unreachable. Priced inside the contract, not
     # inferred: on credit_g's depth-3 arm (30 splits, paired, order<=3 throughout) forcing
     # feature_fraction back to 1.0 costs -0.0047. 0.45 rather than 0.4 so the low rung sits inside
     # the measured band instead of just under it; two new values rather than one so the dimension
     # stays balanced over the sampled tail (4 values x 15 slots via `sample_hp_set`'s cycle).
     "colsample_bytree": [1.0, 0.8, 0.6, 0.45],
-    # Leaf resolution. FILLED at hsv 23 (2026-09-01), same forensic, lever 3. tri's grid jumped
+    # Leaf resolution. FILLED at hsv 23 (2026-09-01), same forensic, lever 3. t-boost's grid jumped
     # 0 -> 50 -> 200 while every one of the 15 reproduced LightGBM champions lands between 1 and
     # 46 (1, 2, 4, 5, 12, 13, 17, 18, 20, 27, 46) — a real interior optimum the search could not
     # address. Measured on credit_g's depth-3 arm against its champion's min_data_in_leaf=2:
@@ -343,7 +343,7 @@ _STATIC_TUNE_GRID = {
     "cat_smooth": [None, 1000.0],
 }
 
-# The load-bearing pair for tri-boost's tuned search: interaction admission gates on the hurdle,
+# The load-bearing pair for t-boost's tuned search: interaction admission gates on the hurdle,
 # and the hurdle's effect is order-dependent (a strict hurdle matters more at order 3 than order 1).
 #
 # DO NOT ADD A THIRD NAME. `sample_hp_set` uses this tuple ONLY as an exclusion filter for the
@@ -498,7 +498,7 @@ _DEPTH_LIFT_SE_MULT_FLOOR = 3.0
 # --- hsv 22 (2026-08-31): the JOINT probes — depth carried WITH the knob it needs -------------
 #
 # The depth-conversion forensic measured where
-# constrained-catboost's depth term actually lives and how much of it tri can reach. Its
+# constrained-catboost's depth term actually lives and how much of it t-boost can reach. Its
 # structural finding is about THIS FILE, not about the engine:
 #
 #     `max_depth` is a COORDINATE PROBE (base hp + ONE knob), while `interaction_gain_hurdle` and
@@ -514,7 +514,7 @@ _DEPTH_LIFT_SE_MULT_FLOOR = 3.0
 # no interpolation, no third combination:
 #
 #   (max_depth 8, interaction_gain_hurdle 0.0)  — eusavingul +0.003844 (t=+6.51, 9-0): 89% of its
-#       whole tri<->ccb2 gap, residual vs the ccb2 cell -0.000492 (t=-0.95, W-L 3-6) = a TIE.
+#       whole t-boost<->ccb2 gap, residual vs the ccb2 cell -0.000492 (t=-0.95, W-L 3-6) = a TIE.
 #       Nothing about the bank moves: it stays at 25 tables = the COMPLETE order-<=3 lattice on 5
 #       features (5 + 10 + 10), with ZERO order-4 tables. The order axis is inert here — order
 #       3->4 and 3->5 are BIT-IDENTICAL on 2 of 3 splits and emit no order-4 table. What depth
@@ -552,31 +552,31 @@ _DEPTH_LIFT_SE_MULT_FLOOR = 3.0
 # --- hsv 23 (2026-09-01): the RANDOMIZED-SPLIT probes — ADDED, THEN RETIRED AT hsv 24 ---------
 #
 # `random_strength` 1.0 and 4.0 entered at hsv 23 as the LightGBM gap forensic's top-ranked lever
-# (tri's analog of `extra_trees`, worth +0.0097 on credit_g and +0.0040 on ohlsson for LightGBM at
+# (t-boost's analog of `extra_trees`, worth +0.0097 on credit_g and +0.0040 on ohlsson for LightGBM at
 # depth 3). They are GONE at hsv 24, on the evidence the av44 selection smokes recorded before the
 # campaign ran (`configs/t-boost.yaml`, the hsv-23 block): the probes are live and
 # non-inert — they move the score — but on inner CV they rank 14th and 9th of 30 on credit_g, 16th
 # and 6th on swautoins, 15th and 7th on fremotor_payfreq, 11th and 14th on freMTPL2freq, and no
 # smoked cell ships one. (Only eusavingul ranked them 1-2, and that was UNDER the av44 full pin,
 # which fixed every other coordinate — the pin the av45 cycle also removes.) Neither value
-# dominates the other, which is what the mechanism predicts: tri's `random_strength` is an ABSOLUTE
+# dominates the other, which is what the mechanism predicts: t-boost's `random_strength` is an ABSOLUTE
 # additive perturbation of the per-level Newton gain (`score = max(gain,0)*penalty +
 # U(-s,s)/sqrt(round+1)`, engine/split.rs), so it is scale-dependent by construction and
-# tri-boost's own research note says a fixed sigma is "either a no-op or destabilizing"
+# t-boost's own research note says a fixed sigma is "either a no-op or destabilizing"
 # (research/06-techniques/5-losses-sampling-objectives.md). Two fixed rungs cannot cover a
 # data-dependent scale; the campaign read the no-op half. Retired rather than rescaled — a
-# gain-relative sigma would be a tri-boost engine change, not a search-space one.
+# gain-relative sigma would be a t-boost engine change, not a search-space one.
 #
 # --- hsv 24 (2026-09-02): the FAIRNESS cycle — FOUR PROBES RETIRED, budget back to 25 ----------
 #
 # The block only ever grew. At hsv 21 it hit the joint-coverage floor (a 15-draw sampled tail is
 # what `sample_hp_set` needs to see all 15 (order, hurdle) combinations), and hsv 22 and hsv 23
 # then bought their new probes by RAISING `n_configs` — 25 -> 27 -> 29 — instead of paying the
-# floor. Each step was individually defensible and the sum was not: tri-boost ended up racing 29
+# floor. Each step was individually defensible and the sum was not: t-boost ended up racing 29
 # candidates while lightgbm, xgboost, catboost and ebm each race 25. That is a TUNING BUDGET
-# asymmetry in tri's favour on the one axis a benchmark most has to keep level, so the budget goes
+# asymmetry in t-boost's favour on the one axis a benchmark most has to keep level, so the budget goes
 # back to 25 and the block is cut to 10 probes — 25 - 10 = 15, the tail is exactly the floor
-# again, and tri races the same 25 candidates as every comparator.
+# again, and t-boost races the same 25 candidates as every comparator.
 #
 # WHICH FOUR, and why these and not others — each was retired on ITS OWN measured record, not to
 # hit a number:
@@ -606,7 +606,7 @@ _DEPTH_LIFT_SE_MULT_FLOOR = 3.0
 # and 12 to 9 and 10, and the 15 sampled draws move up by four, which changes the per-candidate
 # `seed` (`static_configs` stamps the NOMINAL index) and therefore their fits. That is a real
 # break and it is taken knowingly, ONCE: hsv 24 is an `hpo_search_version` bump riding an
-# `adapter_version` bump, so every tri-boost cell recomputes anyway and there is nothing cached
+# `adapter_version` bump, so every t-boost cell recomputes anyway and there is nothing cached
 # for the contract to protect. The contract resumes from this block.
 _COORDINATE_PROBES = (
     ("max_interaction_order", 1),
@@ -726,14 +726,14 @@ def _dim_sequence(values: list, n: int, seed: int, key: str) -> list:
 
 
 class TBoost(ModelAdapter):
-    name = "t-boost"   # hashes as "triboost": see insurarena.model_ids
+    name = "t-boost"
     family = "glassbox-gbm"                 # boosted AND interpretable — its own point on the tradeoff
     adapter_version = "1"                   # reset 2026-09-09 (arena rebuilt from scratch); prior history in git
     hpo_search_version = "1"                # reset 2026-09-09 (arena rebuilt from scratch); prior history in git
     needs_es_probe = False                  # early-stops internally (recipe validation_fraction); skip probe
     supported_tasks = (TaskType.FREQ, TaskType.SEV, TaskType.PP, TaskType.CLF, TaskType.MULTICLF)
 
-    # The count/rarity channel is now a NATIVE tri-boost feature (cat_channels=["mean","count"],
+    # The count/rarity channel is now a NATIVE t-boost feature (cat_channels=["mean","count"],
     # enabled in the recommended_recipe call below since av 32) — the adapter's earlier __share
     # column shim is retired. The library adds a target-free count axis to every high-card
     # categorical (cat_count_min_levels=20, matching the retired shim's gate) and COLLAPSES it
@@ -821,10 +821,10 @@ class TBoost(ModelAdapter):
         overrides = {c: self.hp[c] for c in _PASSTHROUGH if c in self.hp and c != "frequency_formulation"}
         if self._task == TaskType.PP:
             overrides["tweedie_rho"] = float(train.task.tweedie_power or 1.5)
-        # tri-boost table pruning: deploy the CV-pruned tables-only model (val is None). Skipped
+        # t-boost table pruning: deploy the CV-pruned tables-only model (val is None). Skipped
         # during the tuned OOF search (val given) since pruning is a structural refinement, not a tuned
         # hyper-parameter — keeps config search tractable. Prune sub-params stay at recipe defaults.
-        # Both branches are EXPLICIT since tri-boost 2026-07-15 made prune=True the library default
+        # Both branches are EXPLICIT since t-boost 2026-07-15 made prune=True the library default
         # (benchmark parity — the constructor now matches what this adapter always deployed): the
         # else-pin preserves this adapter's original prune-free OOF-search fits, keeping every cached
         # cell's behavior identical across that library change (no adapter_version bump needed).
@@ -843,7 +843,7 @@ class TBoost(ModelAdapter):
         n_jobs = self.hp.get("n_jobs") or (int(_t) if _t else None)
         # Native count/rarity channel (av 32): enable the library's second target-free categorical
         # axis on high-card cats (>=20 post-pooling levels — matches the retired adapter shim), which
-        # tri-boost collapses losslessly with the mean-TS channel into one rating table per cat.
+        # t-boost collapses losslessly with the mean-TS channel into one rating table per cat.
         # Inert without categoricals; passed only when the dataset has any.
         #
         # MULTICLF (av 34): swap the mean channel for the P3 per-class frequency channels. The
@@ -877,13 +877,13 @@ class TBoost(ModelAdapter):
         # SIZE-GATED FOLD FIDELITY + KEEP BUDGET (av 40): see the module-level note by
         # `_FIDELITY_KEEP_BUDGET`. Same dataset-level n, same threshold and same explicit-hp
         # precedence as the bags gate above — this is the av45 fairness cycle folding the deleted
-        # `tuned_triboost_small_ffull.yaml` into the adapter, so tri-boost resolves from ONE
+        # `tuned_tboost_small_ffull.yaml` into the adapter, so t-boost resolves from ONE
         # config like every comparator. Applied on selection fits too (the deleted config's `hp:`
         # block reached every candidate), which is what keeps the ranked fit and the shipped fit
         # in the same regime; the knobs are inert where the fit does not prune.
         # NOT ON MULTICLF, and not silently: the K>=3 prune path selects on ONE train/select split
         # (`fit_multiclass_pruned`) and has no per-fold refits to pin a candidate bank into, so
-        # tri-boost REFUSES `prune_fold_fidelity` there rather than no-opping, and takes no
+        # t-boost REFUSES `prune_fold_fidelity` there rather than no-opping, and takes no
         # `keep_budget` argument on that path at all. Same filter discipline as the cell-refit and
         # depth gates: a gate never hands a fit a knob the fit cannot honor. Inert on the live
         # catalog — the five gated sets are CLF/SEV/FREQ/PP and none is MULTICLF — but a small
@@ -903,7 +903,7 @@ class TBoost(ModelAdapter):
         # lambda, reachable support coverage, whether the joint backtrack declined) is filled in
         # after the fit below — the gate dict itself is written here so the DECISION is
         # inspectable even on a fit that raises.
-        # The refit needs an out-of-bag complement, and tri-boost REFUSES (rather than silently
+        # The refit needs an out-of-bag complement, and t-boost REFUSES (rather than silently
         # no-opping) at n_bags < 2 — so the HPO scout overlay's `n_bags: 1` must not be handed a
         # cell_refit_base. Only an explicit hp `n_bags` can be below 2; absent one the recipe
         # bags >= 4 (>= 32 under the av38 size gate), so the deploy fits all qualify.
@@ -921,7 +921,7 @@ class TBoost(ModelAdapter):
             # hsv 24 retired that probe, so nothing sets the key and the pop can only ever return
             # None. Kept (not deleted) because it is the filter half of a gate whose injector half
             # is live, and because a future probe or `hp:` block re-arms it immediately: a scout
-            # eval at n_bags=1 handed a refit base makes tri-boost RAISE. Dropped, not zeroed, so
+            # eval at n_bags=1 handed a refit base makes t-boost RAISE. Dropped, not zeroed, so
             # the recipe sees exactly what a candidate without the key would have handed it.
             #
             # This is the ONLY behavior change at fixed hp in av40, and it cannot touch a cached
@@ -937,7 +937,7 @@ class TBoost(ModelAdapter):
         # so an ablation is reachable. Inert at max_depth=3, which is every default cell and every
         # candidate that draws the incumbent rung, so those fits are byte-identical to hsv 19.
         #
-        # The cap is a DEPLOY-time trim of the prune's keep-set, and tri-boost REFUSES it (rather
+        # The cap is a DEPLOY-time trim of the prune's keep-set, and t-boost REFUSES it (rather
         # than silently no-opping) on an unpruned fit — there is no keep-set to trim. The HPO
         # scout overlay sets `_prune_during_hpo: False`, so `overrides["prune"]` is the condition,
         # not the task or the bag count. Same filter discipline as the cell-refit gate above: drop
@@ -969,7 +969,7 @@ class TBoost(ModelAdapter):
         if fit_exposure is not None:
             fit_kwargs["exposure"] = fit_exposure
         if train.group_ids is not None:
-            # Group-honest internal carves (tri-boost 2026-07-13, extended to every objective
+            # Group-honest internal carves (t-boost 2026-07-13, extended to every objective
             # 2026-07-20): on grouped panels the row-level ES/prune-select carves leak
             # near-duplicate rows into validation and defeat early stopping (fits ran to the
             # 4000-tree cap — measured on the payfreq multiclass panels AND on fremotor_prem's
@@ -1083,7 +1083,7 @@ class TBoost(ModelAdapter):
         return np.clip(np.asarray(self.model.predict(Xp), dtype=float), 1e-9, None)
 
     def explain(self) -> Explanation:
-        # tri-boost decomposes to a functional-ANOVA table (interpretable), but no scored artifact here.
+        # t-boost decomposes to a functional-ANOVA table (interpretable), but no scored artifact here.
         return Explanation(kind="none")
 
     @staticmethod
@@ -1273,7 +1273,7 @@ class TBoost(ModelAdapter):
     def finale_rerace_spec() -> dict:
         """TOP-K FINALE RE-RACE, ON since hpo_search_version 23 (2026-09-01).
 
-        WHY THIS ADAPTER AND NO OTHER. tri-boost is the only model on the board whose scout runs
+        WHY THIS ADAPTER AND NO OTHER. t-boost is the only model on the board whose scout runs
         at a REDUCED fidelity (`selection_hp` pins `n_bags: 1` and turns the prune off), so it is
         the only model whose argmax can be decided by a statistic its deploys never see. The
         eusavingul toggle experiment isolates the component exactly: at 1 bag the depth-8 candidate
@@ -1315,7 +1315,7 @@ class TBoost(ModelAdapter):
         shipped depth champions keep 25 and 84 tables against a budget of 100). On a WIDE set it
         is a different model. allstate_sev's depth-6 probe proposes 3,174-3,944 >=3-way tables
         and the cap keeps 100 of them: uncapped it ranks +6.3 t against the anchor, capped it
-        deploys at -0.0209 skill — a bigger number than the entire tri<->ccb2 gap this program
+        deploys at -0.0209 skill — a bigger number than the entire t-boost<->ccb2 gap this program
         exists to close, and it is the same candidate under both numbers.
 
         Two ways to close that: rank depth WITH the cap (turn the prune on for depth probes only,
@@ -1464,10 +1464,10 @@ def _own_hp_keys() -> frozenset:
     """Every hp key THIS adapter's own machinery can emit.
 
     The closure guard in `fit` is scoped to these. A key outside the set did not come from
-    tri-boost's search and dropping it is correct — `tests/test_adapters.py`'s conformance sweep
+    t-boost's search and dropping it is correct — `tests/test_adapters.py`'s conformance sweep
     deliberately hands every adapter one shared hp dict containing other models' knobs
     (`outer_bags`, `smoothing_rounds`, ...), and an adapter is supposed to ignore those. What the
-    guard must catch is the opposite case: a dimension tri-boost itself searches that was never
+    guard must catch is the opposite case: a dimension t-boost itself searches that was never
     wired through `_PASSTHROUGH`, which re-keys every tuned cell and then never reaches the fit.
     `max_bin` sat in exactly that state until hsv 18.
     """

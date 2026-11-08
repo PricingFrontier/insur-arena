@@ -60,9 +60,7 @@ def software_manifest():
     except ImportError:
         tb_source = None
     return {'harness_sha256': h.hexdigest(), 'packages': versions,
-            # The two key names are FROZEN: this dict is part of every model's cell proto, so
-            # renaming a key would re-key the whole board. See insurarena.model_ids.
-            'triboost_engine': engine_fingerprint('t-boost'), 'triboost_python': tb_source,
+            'tboost_engine': engine_fingerprint('t-boost'), 'tboost_python': tb_source,
             'python': platform.python_version()}
 
 

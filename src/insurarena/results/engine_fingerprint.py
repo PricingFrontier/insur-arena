@@ -4,13 +4,13 @@ WHY THIS EXISTS. A cell's identity (`results.cache.cell_signature`) is built fro
 hash, the model/variant, the split id and a protocol dict whose model-version component is a
 HAND-TYPED `adapter_version` on the adapter class. Nothing in it fingerprints the compiled engine
 the fit actually ran against. For a pure-Python engine that is fine — the adapter and the engine
-move together in one repo. For `tri-boost` it is not: the engine is a separately-built Rust
+move together in one repo. For `t-boost` it is not: the engine is a separately-built Rust
 extension that is not even a declared dependency of this package, so a rebuild that moves a fit
 (a Rust refactor, a dependency bump, an accidental default change) silently invalidates every
 cached cell while leaving every cell KEY identical. The cache would then serve stale results with
 no error and no warning — the one failure a version-keyed cache cannot detect on its own.
 
-That is not hypothetical: on 2026-09-04 the tri-boost extension was rebuilt to fix a
+That is not hypothetical: on 2026-09-04 the t-boost extension was rebuilt to fix a
 `monotone_constraints` defect, and the only thing that established the cached cells were still
 valid was a hand-run 16-cell byte-identity replay.
 

@@ -1,6 +1,6 @@
 """hsv 23 (2026-09-01) — the TOP-K FINALE RE-RACE, and the fence around it.
 
-THE RULE. tri-boost ranks candidates at SCOUT fidelity (its `selection_hp` overlay pins
+THE RULE. t-boost ranks candidates at SCOUT fidelity (its `selection_hp` overlay pins
 `n_bags: 1` and turns the prune off) and hands the argmax to the ship gate; the FINALE — full
 deploy fidelity — is spent only on the argmax, the default anchor and the hsv-21 regime-recheck
 candidate. The re-race admits every basis candidate within `band` paired-fold SEs of the argmax
@@ -76,7 +76,7 @@ def _ev(config_idx, score, folds, hp=None, **kw):
 # --- the tuned settings themselves ---------------------------------------------------------------
 
 
-def test_triboost_opts_in_at_the_measured_settings_and_nothing_else_does():
+def test_tboost_opts_in_at_the_measured_settings_and_nothing_else_does():
     assert TBoost.finale_rerace_spec() == {"k": 4, "band": 1.0}
     assert hpo._model_rerace_spec("t-boost") == (4, 1.0)
     assert (hpo._RERACE_K, hpo._RERACE_BAND) == (4, 1.0)
@@ -251,7 +251,7 @@ def test_finale_re_evaluations_are_never_ranked_against_basis_scores():
 
 
 def _drive(scout, finale, pooled=None, n_configs=3, extras=0, mode="always"):
-    """Run tri-boost's static search with faked fold vectors.
+    """Run t-boost's static search with faked fold vectors.
 
     `scout` / `finale` / `pooled` map candidate index -> fold vector. `finale` is keyed on the
     candidate index too; the FINALE anchor re-evaluation of candidate 0 reads `finale[0]`.
@@ -405,13 +405,13 @@ def test_other_models_signatures_are_byte_identical_across_hsv23(name):
 def test_other_models_never_enter_the_finale_block_at_all():
     # Belt and braces behind the opt-in: the re-race lives inside the ship-fidelity finale, and
     # that block is entered only when an adapter declares a `selection_finale_hp` different from
-    # its `selection_hp`. Only tri-boost does.
+    # its `selection_hp`. Only t-boost does.
     for name in ("lightgbm", "xgboost", "catboost", "ebm"):
         assert hpo._model_selection_finale_hp(name) == hpo._model_selection_hp(name), name
     assert hpo._model_selection_finale_hp("t-boost") != hpo._model_selection_hp("t-boost")
 
 
-def test_triboost_cells_key_from_the_version_1_baseline():
+def test_tboost_cells_key_from_the_version_1_baseline():
     # The other side of the fence. On 2026-09-09 the arena was rebuilt from scratch: every
     # adapter_version and hpo_search_version went back to "1" and the cell cache was discarded, so
     # there is no longer any history to re-key away from — these are the keys the first run of the
@@ -427,7 +427,7 @@ def test_triboost_cells_key_from_the_version_1_baseline():
                          runner._proto(cfg, bundle, "t-boost", "default", {}))
     # If this constant ever moves without `adapter_version` moving, a default fit path changed
     # while its key did not — the one failure a version-keyed cache cannot detect.
-    assert got == "a3365c8e67a63cd095630c4c"
+    assert got == "b468b6ffdd068078a4207890"
     # At "1" both counters are omitted from the proto entirely (`runner._proto` writes them only
     # when they differ from the default), which is what keeps the version-1 keys clean.
     assert "hpo_search_version" not in runner._proto(cfg, bundle, "t-boost", "tuned", {})

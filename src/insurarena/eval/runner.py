@@ -203,7 +203,7 @@ def _tuned_once(cache, cfg, bundle, splits, ds_name: str, h: str, name: str, hp_
     # homesite_conv's tuned-below-default rows and REVERTED same day — those rows compared an
     # av32 champion against av31 default cells; at av32-vs-av32 the champion genuinely beats
     # the default on 9/9 deploys and the single-split gate was CORRECT. Re-extend only with
-    # a real large-set counterexample (see triboost-vs-ccb memory 2026-08-04).
+    # a real large-set counterexample (see t-boost-vs-ccb memory 2026-08-04).
     #
     # RE-OPENED 2026-08-23 (hsv 18) against that condition, quoted above verbatim: "Re-extend only
     # with a real large-set counterexample." norauto is it (n=183,999, so `repeats` is 1 and hsv

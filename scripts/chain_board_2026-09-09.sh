@@ -32,7 +32,7 @@
 # `max_workers`/`threads_per_worker` on the assumption that it is alone. Two campaigns writing the
 # same cell cache concurrently is the failure the double-launch guard below exists to prevent.
 #
-# MemoryMax=52G: measured on the tri-boost build at max_workers 6 (74% of the cap on the worst
+# MemoryMax=52G: measured on the t-boost build at max_workers 6 (74% of the cap on the worst
 # fit, homesite_conv at 6.41 GB peak RSS per worker); t-boost.yaml runs max_workers 5, which puts
 # that same worst case at 62%. OMP_NUM_THREADS=4 keeps a fit inside its worker.
 set -uo pipefail

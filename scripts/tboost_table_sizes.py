@@ -33,11 +33,11 @@ def heaviest_cells(only: set[str] | None) -> list[dict]:
     best: dict[tuple, dict] = {}
     for path in glob.glob(str(ROOT / "runs/benchmark/evidence/*.json")):
         d = json.loads(Path(path).read_text())
-        if d.get("model") not in ("t-boost", "triboost") or d.get("failed"):
+        if d.get("model") != "t-boost" or d.get("failed"):
             continue
         if only and d["dataset"] not in only:
             continue
-        boxes = ((d.get("triboost") or {}).get("box_counts") or {}).get("factored_boxes") or 0
+        boxes = ((d.get("tboost") or {}).get("box_counts") or {}).get("factored_boxes") or 0
         key = (d["dataset"], d["variant"])
         if key not in best or boxes > best[key]["boxes"]:
             best[key] = dict(dataset=d["dataset"], variant=d["variant"], split_id=d["split_id"],

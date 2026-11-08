@@ -1,4 +1,4 @@
-"""Search-cost levers (SPEC §5.5, tri-boost design/tuning-speed-roadmap.md):
+"""Search-cost levers (SPEC §5.5, t-boost design/tuning-speed-roadmap.md):
 A3 selection subsampling, cost-aware candidate evaluation order, and the nominal-order
 budget curve that keeps its meaning under both.
 """

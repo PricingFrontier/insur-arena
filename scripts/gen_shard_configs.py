@@ -83,7 +83,7 @@ TIERS = [("heavy", 5e6), ("mid", 1e6), ("light", 0.0)]
 #:           tier is allowed to oversubscribe ~1.5-2x: sub-100k fits never saturate their thread
 #:           budget, so more processes beats more idle threads.
 #: LightGBM/XGBoost/CatBoost sit at 2 threads, so they need the most processes to fill the box;
-#: tri-boost sits at 8 and needs the fewest.
+#: t-boost sits at 8 and needs the fewest.
 CONCURRENCY = {
     #            heavy  mid  light        threads/job   heavy cores / RAM
     "ebm":       (6,     8,   12),      # 4            24 / ~18 GB
@@ -98,11 +98,11 @@ CONCURRENCY = {
 # jobs — prudential_life, allstate_sev, homesite_conv, porto_seguro, freMTPL2freq, i.e. the worst
 # five datasets on the board — ran concurrently at a scope MemoryPeak of 12.4 GB, with the largest
 # single job (homesite_conv, 261k x 301) resident at 4.2 GB. The table above had budgeted ~36 GB
-# for that wave. The anchors it was sized from are tri-boost depth-6 deploy fits, which are the
+# for that wave. The anchors it was sized from are t-boost depth-6 deploy fits, which are the
 # heaviest thing on this board by a wide margin and badly overstate what the four comparators
 # cost. So the 2-thread models' mid and light waves go 12 -> 16 and 16 -> 20: at ~1.5 GB per
 # LightGBM/XGBoost/CatBoost job on a 400k-row set that is ~30 GB worst case, still inside the
-# 52 GB cgroup cap, and it lifts the mid wave from 24 to 32 cores. tri-boost is NOT raised — its
+# 52 GB cgroup cap, and it lifts the mid wave from 24 to 32 cores. t-boost is NOT raised — its
 # 6.41 GB homesite_conv measurement is real and 4 x 8 threads already fills the box.
 
 

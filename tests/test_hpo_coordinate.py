@@ -6,8 +6,8 @@ from insurarena.eval import hpo
 from insurarena.eval import runner
 from insurarena.models.tboost_model import TBoost, _STATIC_TUNE_GRID
 
-# tri-boost migrated to the static 25-candidate basis on 2026-07-20. The coordinate WALK MACHINERY
-# still lives in hpo.py, so the tests below exercise it by restoring tri-boost's historical
+# t-boost migrated to the static 25-candidate basis on 2026-07-20. The coordinate WALK MACHINERY
+# still lives in hpo.py, so the tests below exercise it by restoring t-boost's historical
 # coordinate stages (identical grids — sample_hp now draws from this same _STATIC_TUNE_GRID).
 # Two DIMENSIONS joined the static grid after the walk was retired and so were never walk stages:
 # cat_smooth (hsv 15, 2026-07-22) and max_bin (hsv 18, 2026-08-23). The restored historical stages
@@ -21,7 +21,7 @@ _COORD_STAGES = [{"name": n, "values": list(v)} for n, v in _STATIC_TUNE_GRID.it
 
 
 @pytest.fixture
-def triboost_coordinate(monkeypatch):
+def tboost_coordinate(monkeypatch):
     monkeypatch.setattr(
         TBoost, "coordinate_tuning_stages",
         staticmethod(lambda: [dict(s) for s in _COORD_STAGES]),
@@ -42,15 +42,15 @@ def _fake_cfg():
     )
 
 
-def test_triboost_dispatches_to_static_after_migration():
-    # Regression guard for the 2026-07-20 coordinate->static migration: tri-boost declares no
+def test_tboost_dispatches_to_static_after_migration():
+    # Regression guard for the 2026-07-20 coordinate->static migration: t-boost declares no
     # coordinate plan, so the HPO dispatch uses the static 25-candidate search (uncapped n_configs),
     # like every other tunable model.
     assert hpo.coordinate_tuning_plan("t-boost") is None
     assert hpo.effective_n_configs("t-boost", 50) == 50
 
 
-def test_triboost_coordinate_plan_order_and_carry_forward(triboost_coordinate, monkeypatch):
+def test_tboost_coordinate_plan_order_and_carry_forward(tboost_coordinate, monkeypatch):
     def fake_eval(
         model_name,
         otr,
@@ -153,7 +153,7 @@ def test_triboost_coordinate_plan_order_and_carry_forward(triboost_coordinate, m
     assert [e["stage"] for e in evals[-2:]] == ["finale", "finale"]
 
 
-def test_triboost_coordinate_plan_respects_budget_cap(triboost_coordinate, monkeypatch):
+def test_tboost_coordinate_plan_respects_budget_cap(tboost_coordinate, monkeypatch):
     def fake_eval(*args, metadata=None, **kwargs):
         hp = dict(args[2])
         config_idx = int(args[3])
@@ -249,7 +249,7 @@ def test_stage_prefer_rule_defends_incumbent_on_near_tie(monkeypatch):
     assert stage_evals[0]["score"] < 1.005
 
 
-def test_coordinate_plan_normalizes_oversized_budget_for_signatures(triboost_coordinate):
+def test_coordinate_plan_normalizes_oversized_budget_for_signatures(tboost_coordinate):
     # 18 = one candidate per non-base value across the restored stages: v11 dropped the n_bags
     # stage (13), hsv 17 (av34) added learning_rate 0.02 (14), and hsv 23 (av44) added
     # colsample_bytree 0.6/0.45 and min_data_in_leaf 5/20 (18).
@@ -304,7 +304,7 @@ def _folded_eval(fold_map):
     return fake_eval
 
 
-def test_coordinate_stage_move_needs_one_se(triboost_coordinate, monkeypatch):
+def test_coordinate_stage_move_needs_one_se(tboost_coordinate, monkeypatch):
     # Hurdle 0.0 beats the base pooled (0.99933 < 1.0) — the OLD rule would take it — but its
     # paired margin (0.00067) is under 1 SE (0.00088), so it must be rejected. Hurdle 30.0 wins
     # every fold and must be accepted. The default anchor is far worse, so the walk ships.
@@ -326,7 +326,7 @@ def test_coordinate_stage_move_needs_one_se(triboost_coordinate, monkeypatch):
     assert evals[0]["stage"] == "default"
 
 
-def test_coordinate_gate_ships_default_when_walk_is_noise(triboost_coordinate, monkeypatch):
+def test_coordinate_gate_ships_default_when_walk_is_noise(tboost_coordinate, monkeypatch):
     # Base and every stage move are within noise of the default -> the tuned variant must ship
     # the true default hp, not the tuned-family base.
     fold_map = {

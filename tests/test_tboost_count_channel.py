@@ -1,6 +1,6 @@
-"""av32 switchover: the count/rarity channel is now a NATIVE tri-boost feature. The adapter no
+"""av32 switchover: the count/rarity channel is now a NATIVE t-boost feature. The adapter no
 longer adds __share numeric columns; it enables the library's cat_channels=["mean","count"] with
-cat_count_min_levels=20 (the retired shim's gate) so tri-boost adds a target-free count axis to
+cat_count_min_levels=20 (the retired shim's gate) so t-boost adds a target-free count axis to
 high-card categoricals and collapses it losslessly into one rating table per categorical."""
 import numpy as np
 import pandas as pd
@@ -10,7 +10,7 @@ from insurarena.datasets.base import DatasetBundle
 from insurarena.models.tboost_model import TBoost
 from insurarena.tasks import FREQ_SPEC
 
-pytest.importorskip("tri_boost")
+pytest.importorskip("t_boost")
 
 
 def _bundle(n: int = 600, levels: int = 30, seed: int = 0) -> DatasetBundle:

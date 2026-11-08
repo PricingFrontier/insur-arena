@@ -44,8 +44,8 @@ def test_glm_predicts_probability_matrix():
     assert "multiclass_accuracy" in sec and 0.0 <= sec["multiclass_accuracy"] <= 1.0
 
 
-def test_triboost_predicts_multiclass_probability_matrix():
-    pytest.importorskip("tri_boost")
+def test_tboost_predicts_multiclass_probability_matrix():
+    pytest.importorskip("t_boost")
     b = build_loader("synthetic_multiclf", subsample=900).load()
     k = b.meta["n_classes"]
     tr, te = b.subset(np.arange(0, 700)), b.subset(np.arange(700, 900))

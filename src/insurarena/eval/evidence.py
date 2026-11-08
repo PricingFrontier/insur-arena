@@ -220,7 +220,7 @@ def _score_tboost_numeric_tables_independently(bank, X):
 def _inspect_tboost_evidence(model, test):
     """Census from the public rating export; unsupported agreement is explicit."""
     is_tb = getattr(model, 'name', '') == 't-boost' or 'TBoost' in type(model).__name__
-    report = {'is_triboost': is_tb, 'table_counts': None, 'box_counts': None,
+    report = {'is_tboost': is_tb, 'table_counts': None, 'box_counts': None,
               'exported_bytes': None, 'census': getattr(model, 'table_census_', None),
               'raw_export_agreement': {'tested': False, 'agreement': None, 'max_abs_diff': None,
                  'dense_tables_scored': 0, 'factored_tables_scored': 0, 'unsupported_reason': None}}
@@ -485,9 +485,7 @@ def collect_evidence(
         "portfolio": portfolio_record,
         "row_hashes": row_hashes,
         "model_artifact": safe_size,
-        # key FROZEN as "triboost" (and "is_triboost" inside): the retained evidence files of the
-        # cached board use it, and one schema is worth more than the new spelling here.
-        "triboost": tboost_evidence,
+        "tboost": tboost_evidence,
         "feature_segments": feature_segments,
     }
 

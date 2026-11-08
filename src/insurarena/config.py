@@ -36,7 +36,7 @@ class Config:
     inner_repeats: int | str = "auto"  # repeat inner CV on small tune splits ("auto" = size-based)
     tune_split_id: int = 0        # legacy private helper only; campaign selects per outer split
     time_budget_s: float | None = None  # soft per tuned-once config-search budget; None = no cap
-    # Tuning-speed levers (design/tuning-speed-roadmap.md in tri-boost, verified 2026-07-15):
+    # Tuning-speed levers (design/tuning-speed-roadmap.md in t-boost, verified 2026-07-15):
     fold_workers: int = 1         # A1: threads per candidate eval for its inner folds (wall-clock
                                   # only, scores bit-identical). Total threads per search worker is
                                   # ~fold_workers x per-fit threads — size against max_workers.

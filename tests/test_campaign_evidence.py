@@ -387,7 +387,7 @@ def test_write_evidence_atomic_and_npz_support(tmp_path):
 # --- 9. TBoost Table Census and Raw Export Agreement -------------------------------------
 
 
-def test_triboost_evidence_structure_and_agreement():
+def test_tboost_evidence_structure_and_agreement():
     """TBoost model collects census, exported bytes, and checks raw export agreement."""
     pytest.importorskip("t_boost")
     try:
@@ -417,13 +417,13 @@ def test_triboost_evidence_structure_and_agreement():
 
     ev = collect_evidence(model, tr, te, pred, tr_idx, te_idx)
 
-    tri = ev["triboost"]
-    assert tri["is_triboost"] is True
-    assert tri["table_counts"] is not None
-    assert tri["box_counts"] is not None
-    assert tri["exported_bytes"] is not None and tri["exported_bytes"] > 0
+    tb = ev["tboost"]
+    assert tb["is_tboost"] is True
+    assert tb["table_counts"] is not None
+    assert tb["box_counts"] is not None
+    assert tb["exported_bytes"] is not None and tb["exported_bytes"] > 0
 
-    agreement = tri["raw_export_agreement"]
+    agreement = tb["raw_export_agreement"]
     # For purely numeric features, raw export agreement should be tested and agree
     assert agreement["tested"] is True
     assert agreement["agreement"] is True
@@ -431,7 +431,7 @@ def test_triboost_evidence_structure_and_agreement():
     assert agreement["unsupported_reason"] is None
 
 
-def test_triboost_categorical_unsupported_reason():
+def test_tboost_categorical_unsupported_reason():
     """When categoricals are present in TBoost, agreement is not claimed and unsupported_reason is set."""
     pytest.importorskip("t_boost")
     try:
@@ -463,7 +463,7 @@ def test_triboost_categorical_unsupported_reason():
     pred = model.predict(te.X, te.exposure)
 
     ev = collect_evidence(model, tr, te, pred, tr_idx, te_idx)
-    agreement = ev["triboost"]["raw_export_agreement"]
+    agreement = ev["tboost"]["raw_export_agreement"]
 
     # Invariant: Do not claim tested if not
     assert agreement["tested"] is False

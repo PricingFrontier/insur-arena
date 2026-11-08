@@ -377,7 +377,7 @@ class _DummyTBoostModel:
         return np.full(len(X), 0.15)
 
 
-def test_triboost_frequency_formulation_rate_weight_monkeypatch(monkeypatch):
+def test_tboost_frequency_formulation_rate_weight_monkeypatch(monkeypatch):
     """Verify rate_weight (default): passed y is rate, sample_weight is exposure, no exposure arg."""
     from insurarena.models import tboost_model as TM
 
@@ -404,7 +404,7 @@ def test_triboost_frequency_formulation_rate_weight_monkeypatch(monkeypatch):
     assert "frequency_formulation" in model.hp
 
 
-def test_triboost_frequency_formulation_count_offset_monkeypatch(monkeypatch):
+def test_tboost_frequency_formulation_count_offset_monkeypatch(monkeypatch):
     """Verify count_offset: passed y is raw counts, sample_weight is unit weights, exposure is passed."""
     from insurarena.models import tboost_model as TM
 
@@ -442,7 +442,7 @@ def test_triboost_frequency_formulation_count_offset_monkeypatch(monkeypatch):
     assert (preds > 0).all()
 
 
-def test_triboost_frequency_formulation_guard_nonfreq():
+def test_tboost_frequency_formulation_guard_nonfreq():
     """Verify count_offset is explicitly barred on non-FREQ tasks and invalid formulations raise."""
     from insurarena.models.tboost_model import TBoost
 
@@ -459,7 +459,7 @@ def test_triboost_frequency_formulation_guard_nonfreq():
         model_invalid.fit(_make_freq_bundle())
 
 
-def test_triboost_actual_small_fit():
+def test_tboost_actual_small_fit():
     """Test actual small fit if t_boost is importable/installed."""
     pytest.importorskip("t_boost")
     from insurarena.models.tboost_model import TBoost

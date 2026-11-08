@@ -1,8 +1,8 @@
 """av45 size-gated FOLD FIDELITY + KEEP BUDGET: the per-dataset `ffull` config, folded into the model.
 
 Until av44 the five sub-2500 datasets got `prune_fold_fidelity=True` and an unbounded
-`prune_keep_budget` from a SECOND campaign config (`configs/tuned_triboost_small_ffull.yaml`), so
-tri-boost was the only model on the board resolving from more than one config while every
+`prune_keep_budget` from a SECOND campaign config (`configs/tuned_tboost_small_ffull.yaml`), so
+t-boost was the only model on the board resolving from more than one config while every
 comparator ran exactly one. Those knobs are chosen by DATASET SIZE, which the adapter can read for
 itself, so they are now a fit-time gate and the config is deleted.
 
@@ -13,7 +13,7 @@ What these tests defend, in the order the fairness argument needs them:
   * it reads DATASET-level n from the bundle meta, not fit-slice rows — so a selection fold on
     ~4n/9 rows and the deploy fit on 2n/3 reach the same verdict, which is the property that keeps
     the ranked model and the shipped model in one regime;
-  * explicit `hp` outranks it in BOTH directions, the same precedence every other tri-boost gate
+  * explicit `hp` outranks it in BOTH directions, the same precedence every other t-boost gate
     uses, so an ablation is one config line;
   * the decision is recorded on `fidelity_gate_` whether or not it fires, and reaches the estimator.
 """
@@ -153,7 +153,7 @@ def test_the_decision_is_recorded_and_deterministic():
 
 
 def test_the_gate_never_fires_on_multiclf():
-    # tri-boost REFUSES `prune_fold_fidelity` on the K>=3 prune path (one train/select split, no
+    # t-boost REFUSES `prune_fold_fidelity` on the K>=3 prune path (one train/select split, no
     # per-fold refits to pin a bank into) and that path takes no keep-budget argument at all, so a
     # gate that fired there would hand the fit knobs it cannot honor — and, on the fidelity knob,
     # would RAISE. Inert on today's catalog (all five gated sets are CLF/SEV/FREQ/PP), asserted so
